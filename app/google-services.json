@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "991067509127",
+    "project_id": "anikutusuapp",
+    "storage_bucket": "anikutusuapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:991067509127:android:d814287886475319b64322",
+        "android_client_info": {
+          "package_name": "com.example.anikutusu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlMwOVdsgJRUyznwoGrYIlQkYDJ0_cVtU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

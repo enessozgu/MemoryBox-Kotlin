@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/dialog_background">
+
+    <EditText
+        android:id="@+id/editTextMemory"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:hint="Anını yaz..."
+        android:background="@drawable/edit_text_bg"
+        android:gravity="top|start"
+        android:padding="16dp"
+        android:textSize="16sp"
+        android:textColor="#333333"
+        android:inputType="textMultiLine"
+        android:overScrollMode="always"
+        android:scrollbars="vertical"
+        android:maxLines="6"/>
+
+    <ImageView
+        android:id="@+id/imageViewSelectedPhoto"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:visibility="gone"
+        android:scaleType="centerCrop"
+        android:layout_marginTop="16dp"
+        android:background="#E0E0E0"
+        android:clipToOutline="true"
+        android:outlineProvider="background" />
+
+    <Button
+        android:id="@+id/buttonSelectPhoto"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Fotoğraf Seç"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#3F51B5"
+        android:layout_marginTop="20dp"
+        android:elevation="4dp"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.05"
+        android:background="@drawable/rounded_button" />
+
+    <Button
+        android:id="@+id/buttonRecordAudio"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Ses Kaydı Başlat"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#FF5722"
+        android:layout_marginTop="12dp"
+        android:elevation="4dp"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.05"
+        android:background="@drawable/rounded_button" />
+
+    <Button
+        android:id="@+id/buttonStopAudio"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Kaydı Durdur"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#9E9E9E"
+        android:visibility="gone"
+        android:layout_marginTop="12dp"
+        android:elevation="4dp"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.05"
+        android:background="@drawable/rounded_button" />
+
+</LinearLayout>

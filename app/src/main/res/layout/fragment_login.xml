@@ -1,0 +1,62 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="32dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F9FAFB"
+    android:gravity="center_vertical">
+
+    <!-- Başlık -->
+    <TextView
+        android:id="@+id/appTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Anı Kutusu"
+        android:textSize="36sp"
+        android:textStyle="bold"
+        android:textColor="#1E88E5"
+        android:fontFamily="sans-serif-medium"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="48dp"
+        android:letterSpacing="0.05"/>
+
+    <EditText
+        android:id="@+id/emailEditText"
+        android:hint="Email"
+        android:inputType="textEmailAddress"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/edittext_background"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"
+        android:textColor="#333333"
+        android:textSize="16sp"
+        android:drawableStart="@android:drawable/ic_dialog_email"
+        android:drawablePadding="12dp" />
+
+    <EditText
+        android:id="@+id/passwordEditText"
+        android:hint="Şifre"
+        android:inputType="textPassword"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/edittext_background"
+        android:padding="12dp"
+        android:layout_marginBottom="24dp"
+        android:textColor="#333333"
+        android:textSize="16sp"
+        android:drawableStart="@android:drawable/ic_lock_idle_lock"
+        android:drawablePadding="12dp" />
+
+    <Button
+        android:id="@+id/loginButton"
+        android:text="Giriş Yap"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/button_rounded_gradient"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

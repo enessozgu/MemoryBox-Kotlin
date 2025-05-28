@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/registerFragment">
+
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.example.anikutusu.RegisterFragment"
+        android:label="Kayıt Ol">
+        <action
+            android:id="@+id/action_registerFragment_to_homeMapFragment"
+            app:destination="@id/homeMapFragment" />
+        <action
+            android:id="@+id/action_registerFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/welcomeFragment"
+        android:name="com.example.anikutusu.WelcomeFragment"
+        android:label="Welcome">
+        <action
+            android:id="@+id/action_welcomeFragment_to_homeMapFragment"
+            app:destination="@id/homeMapFragment" />
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.anikutusu.LoginFragment"
+        android:label="Giriş Yap">
+        <action
+            android:id="@+id/action_loginFragment_to_homeMapFragment"
+            app:destination="@id/homeMapFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_registerFragment"
+            app:destination="@id/registerFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/homeMapFragment"
+        android:name="com.example.anikutusu.HomeMapFragment"
+        android:label="Anı Haritası">
+        <action
+            android:id="@+id/action_homeMapFragment_to_registerFragment"
+            app:destination="@id/registerFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_homeMapFragment_to_memoryListFragment"
+            app:destination="@id/memoryListFragment" />
+
+    </fragment>
+    <fragment
+        android:id="@+id/memoryListFragment"
+        android:name="com.example.anikutusu.MemoryListFragment"
+        android:label="fragment_memory_list2"
+        tools:layout="@layout/fragment_memory_list" />
+
+</navigation>
