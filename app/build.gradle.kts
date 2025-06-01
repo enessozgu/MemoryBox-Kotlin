@@ -4,6 +4,10 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.kapt") // ✅ işte bu satırı ekle
     id("com.google.gms.google-services")
+    id("androidx.navigation.safeargs.kotlin")
+
+
+
 }
 
 
@@ -61,7 +65,14 @@ dependencies {
 
 
     implementation ("com.github.bumptech.glide:glide:4.15.1")
+
     kapt ("com.github.bumptech.glide:compiler:4.15.1")
+
+
+
+
+    implementation ("androidx.navigation:navigation-fragment-ktx:2.5.3")
+    implementation ("androidx.navigation:navigation-ui-ktx:2.5.3")
 
 
 
@@ -78,7 +89,6 @@ dependencies {
 
     implementation ("com.google.android.gms:play-services-location:21.0.1")
 
-    implementation ("com.google.firebase:firebase-analytics")
 
 
 

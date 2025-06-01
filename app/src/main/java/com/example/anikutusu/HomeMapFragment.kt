@@ -163,6 +163,18 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         enableMyLocation() // Bu zaten kendi içinde izin kontrolü yapıyor
         moveCameraToUserLocation() // Kullanıcı konumuna kamerayı taşı
 
+
+
+        val lat = requireActivity().intent.getDoubleExtra("latitude", 0.0)
+        val lng = requireActivity().intent.getDoubleExtra("longitude", 0.0)
+
+        if (lat != 0.0 && lng != 0.0) {
+            val targetLocation = LatLng(lat, lng)
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(targetLocation, 16f))
+            googleMap.addMarker(MarkerOptions().position(targetLocation).title("Anın burada!"))
+        }
+
+
         loadExistingMemories()
         googleMap.setOnMapLongClickListener { latLng ->
             openAddMemoryDialog(latLng)
@@ -174,6 +186,9 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         }
 
     }
+
+
+
 
     private fun enableMyLocation() {
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||

@@ -5,3 +5,10 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     id("com.google.gms.google-services") version "4.4.2" apply false
 }
+buildscript {
+    val nav_version = "2.5.3"
+    dependencies {
+        classpath("androidx.navigation:navigation-safe-args-gradle-plugin:$nav_version")
+    }
+}
+

@@ -1,5 +1,13 @@
 package com.example.anikutusu
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.firebase.auth.GoogleAuthProvider
+import android.content.Intent
+import androidx.activity.result.contract.ActivityResultContracts
+
+
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -11,6 +19,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.example.anikutusu.databinding.FragmentRegisterBinding
 
 class RegisterFragment : Fragment() {
+
+    private lateinit var googleSignInClient: GoogleSignInClient
 
     private lateinit var binding: FragmentRegisterBinding
     private lateinit var auth: FirebaseAuth
@@ -27,9 +37,22 @@ class RegisterFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         auth = FirebaseAuth.getInstance()
 
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+
+        googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso)
+
         binding.textViewGoToLogin.setOnClickListener {
             findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
         }
+
+        binding.googleSignInButton.setOnClickListener {
+            val signInIntent = googleSignInClient.signInIntent
+            googleSignInLauncher.launch(signInIntent)
+        }
+
 
         binding.registerButton.setOnClickListener {
             val email = binding.emailEditText.text.toString()
@@ -50,4 +73,33 @@ class RegisterFragment : Fragment() {
             }
         }
     }
+
+
+
+
+
+    private val googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        if (task.isSuccessful) {
+            val account = task.result
+            val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+            auth.signInWithCredential(credential)
+                .addOnCompleteListener { signInTask ->
+                    if (signInTask.isSuccessful) {
+                        Toast.makeText(requireContext(), "Google ile giriş başarılı", Toast.LENGTH_SHORT).show()
+                        findNavController().navigate(R.id.action_registerFragment_to_homeMapFragment)
+                    } else {
+                        Toast.makeText(requireContext(), "Google ile giriş başarısız: ${signInTask.exception?.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
+        } else {
+            Toast.makeText(requireContext(), "Google oturum açma iptal edildi", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+
+
+
+
 }
