@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.net.Uri
+import com.google.android.gms.common.api.Status
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -24,9 +25,14 @@ import com.example.anikutusu.databinding.FragmentHomeMapBinding
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
@@ -42,8 +48,10 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
     private var _binding: FragmentHomeMapBinding? = null
     private val binding get() = _binding!!
-
+    private lateinit var mapView: MapView
+    private lateinit var autocompleteFragment: AutocompleteSupportFragment
     private lateinit var googleMap: GoogleMap
+
     private var selectedImageUri: Uri? = null
     private var dialogImageView: ImageView? = null
     private var dialogEditText: EditText? = null
@@ -111,7 +119,48 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
         binding.mapView.onCreate(savedInstanceState)
         binding.mapView.getMapAsync(this)
+
+
+
+
+        mapView = binding.mapView
+
+
+        if (!Places.isInitialized()) {
+            Places.initialize(requireContext(), "AIzaSyBiMZF5oOBDgpTJutx1EnwUnGg1lv_aL-8")
+        }
+
+        mapView.getMapAsync { map ->
+            googleMap = map
+            // Harita ayarları burada
+        }
+
+        var autocompleteFragment = childFragmentManager.findFragmentById(R.id.autocomplete_fragment_container) as? AutocompleteSupportFragment
+
+        if (autocompleteFragment == null) {
+            autocompleteFragment = AutocompleteSupportFragment.newInstance()
+            childFragmentManager.beginTransaction()
+                .replace(R.id.autocomplete_fragment_container, autocompleteFragment)
+                .commit()
+        }
+
+        // AutocompleteSupportFragment ayarlarını buraya yazabilirsin
+        autocompleteFragment.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
+        autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+            override fun onPlaceSelected(place: Place) {
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.latLng, 15f))
+            }
+            override fun onError(status: Status) {
+                // Hata durumu
+            }
+        })
+
+
+
+
     }
+
+
 
 
     private fun showMemoryDetailDialog(documentId: String) {
