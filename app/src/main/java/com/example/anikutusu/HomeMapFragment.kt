@@ -1,6 +1,8 @@
 package com.example.anikutusu
 
 import android.Manifest
+import android.app.PendingIntent
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.media.MediaRecorder
@@ -22,6 +24,8 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.anikutusu.databinding.FragmentHomeMapBinding
+import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -43,6 +47,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.util.UUID
+import com.google.android.gms.location.GeofencingRequest
+import com.google.android.gms.location.GeofencingEvent
+
+
+
+
 
 class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
@@ -51,7 +61,8 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var mapView: MapView
     private lateinit var autocompleteFragment: AutocompleteSupportFragment
     private lateinit var googleMap: GoogleMap
-
+    private lateinit var geofencingClient: GeofencingClient
+    private val GEOFENCE_RADIUS_IN_METERS = 100f
     private var selectedImageUri: Uri? = null
     private var dialogImageView: ImageView? = null
     private var dialogEditText: EditText? = null
@@ -97,6 +108,8 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        geofencingClient = LocationServices.getGeofencingClient(requireContext())
+
         Log.d("AuthStatus", "currentUser: ${FirebaseAuth.getInstance().currentUser?.uid}")
 
         locationAndAudioPermissionRequest.launch(
@@ -127,7 +140,10 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
 
         if (!Places.isInitialized()) {
-            Places.initialize(requireContext(), "AIzaSyBiMZF5oOBDgpTJutx1EnwUnGg1lv_aL-8")
+
+            val MAPS_API_KEY="AIzaSyBiMZF5oOBDgpTJutx1EnwUnGg1lv_aL-8"
+
+            Places.initialize(requireContext(),MAPS_API_KEY )
         }
 
         mapView.getMapAsync { map ->
@@ -159,6 +175,59 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
 
     }
+
+
+
+
+
+
+    private fun addGeofence(latLng: LatLng, geofenceId: String) {
+        if (!locationPermissionGranted) return
+
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(requireContext(), "Konum izni gerekli!", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+
+
+        val geofence = Geofence.Builder()
+            .setRequestId(geofenceId)
+            .setCircularRegion(latLng.latitude, latLng.longitude, GEOFENCE_RADIUS_IN_METERS)
+            .setExpirationDuration(Geofence.NEVER_EXPIRE)
+            .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+            .build()
+
+        val geofenceRequest = GeofencingRequest.Builder()
+            .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+            .addGeofence(geofence)
+            .build()
+
+        val intent = Intent(requireContext(), GeofenceBroadcastReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            requireContext(),
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+        )
+
+        try {
+            geofencingClient.addGeofences(geofenceRequest, pendingIntent)
+                .addOnSuccessListener {
+                    Toast.makeText(requireContext(), "Geofence eklendi!", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(requireContext(), "Geofence eklenemedi: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+            Toast.makeText(requireContext(), "Güvenlik hatası: Konum izni eksik!", Toast.LENGTH_SHORT).show()
+        }
+
+    }
+
+
+
 
 
 
@@ -225,8 +294,14 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
 
         loadExistingMemories()
+
         googleMap.setOnMapLongClickListener { latLng ->
             openAddMemoryDialog(latLng)
+
+            val geofenceId = UUID.randomUUID().toString()
+            addGeofence(latLng, geofenceId)
+
+
         }
 
         googleMap.setOnInfoWindowClickListener { marker ->

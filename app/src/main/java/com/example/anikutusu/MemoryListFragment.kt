@@ -15,14 +15,24 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class MemoryListFragment : Fragment() {
 
+
+
     private var _binding: FragmentMemoryListBinding? = null
     private val binding get() = _binding!!
+
     private val adapter = MemoryAdapter { memoryItem ->
-        // 👇 Tıklanınca yapılacak işlemler burada!
-        Toast.makeText(requireContext(), "Anı: ${memoryItem.text}", Toast.LENGTH_SHORT).show()
+        val fragment = MemoryDetailBottomSheetFragment()
+        fragment.arguments = Bundle().apply {
+            putString("text", memoryItem.text)
+            putString("photoUrl", memoryItem.photoUrl)
+            putString("audioUrl", memoryItem.audioUrl)
+            putDouble("latitude", memoryItem.latitude)
+            putDouble("longitude", memoryItem.longitude)
+            putLong("timestamp", memoryItem.timestamp ?: 0L)
+            putString("userId", memoryItem.userId)
+        }
+        fragment.show(parentFragmentManager, fragment.tag)
     }
-
-
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -52,7 +62,11 @@ class MemoryListFragment : Fragment() {
                     MemoryItem(
                         text = doc.getString("text") ?: "",
                         photoUrl = doc.getString("photoUrl"),
-                        audioUrl = doc.getString("audioUrl")
+                        audioUrl = doc.getString("audioUrl"),
+                        latitude = doc.getDouble("latitude") ?: 0.0,
+                        longitude = doc.getDouble("longitude") ?: 0.0,
+                        timestamp = doc.getLong("timestamp") ?: 0L,
+                        userId = doc.getString("userId") ?: ""
                     )
                 }
                 adapter.updateList(list)
