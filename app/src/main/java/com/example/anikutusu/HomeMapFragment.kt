@@ -157,7 +157,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         mapView = binding.mapView
 
         if (!Places.isInitialized()) {
-            val MAPS_API_KEY = "AIzaSyBiMZF5oOBDgpTJutx1EnwUnGg1lv_aL-8"
+            val MAPS_API_KEY = ""
             Places.initialize(requireContext(), MAPS_API_KEY)
         }
 
