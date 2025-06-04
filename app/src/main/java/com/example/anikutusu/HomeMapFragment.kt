@@ -4,10 +4,10 @@ import android.Manifest
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Location
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.net.Uri
-import com.google.android.gms.common.api.Status
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -21,11 +21,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.anikutusu.databinding.FragmentHomeMapBinding
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
+import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -33,10 +35,11 @@ import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.libraries.places.api.Places
+import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
@@ -47,12 +50,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.util.UUID
-import com.google.android.gms.location.GeofencingRequest
-import com.google.android.gms.location.GeofencingEvent
-
-
-
-
+import com.example.anikutusu.MemoryAddMode
+import com.google.android.libraries.places.api.Places
+import com.ornek.anikutusu.ui.viewmodel.MemoryAddViewModel
 
 class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
@@ -72,6 +72,9 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
     private var audioFilePath: String? = null
     private var isRecording = false
     private var locationPermissionGranted = false
+
+    // --- 1. ViewModel Tanımı ---
+    private lateinit var viewModel: MemoryAddViewModel
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
@@ -108,10 +111,38 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // --- 2. ViewModel’i Başlat ---
+        viewModel = ViewModelProvider(this)[MemoryAddViewModel::class.java]
+
+        // --- Rozetleri Gözleme: badge sayısını güncelle ---
+        viewModel.badges.observe(viewLifecycleOwner) { badgesSet ->
+            val badgeCount = badgesSet.size
+            binding.textViewBadgeStatus.text = "Rozet: $badgeCount"
+        }
+
+        // --- Menü Butonu ---
+        binding.btnShowMenu.setOnClickListener {
+            showBottomSheetMenu()
+        }
+
+        // --- Mod Değiştirme Butonu ---
+        binding.btnModSec.setOnClickListener {
+            viewModel.toggleMode()
+        }
+
+        viewModel.selectedMode.observe(viewLifecycleOwner) { mode ->
+            binding.btnModSec.text = when (mode) {
+                MemoryAddMode.SERBEST_EKLE -> "Mod: Serbest Ekle"
+                MemoryAddMode.YERINDE_EKLE -> "Mod: Yerinde Ekle"
+            }
+        }
+
+        // --- Google Geofencing Client ---
         geofencingClient = LocationServices.getGeofencingClient(requireContext())
 
         Log.d("AuthStatus", "currentUser: ${FirebaseAuth.getInstance().currentUser?.uid}")
 
+        // --- İzinleri İste ---
         locationAndAudioPermissionRequest.launch(
             arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
@@ -120,76 +151,82 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             )
         )
 
-        binding.buttonMemoryList.setOnClickListener {
-            findNavController().navigate(R.id.action_homeMapFragment_to_memoryListFragment)
-        }
-
-
-        binding.logoutButton.setOnClickListener {
-            FirebaseAuth.getInstance().signOut()
-            findNavController().navigate(R.id.action_homeMapFragment_to_registerFragment)
-        }
-
+        // --- Haritayı Başlat ---
         binding.mapView.onCreate(savedInstanceState)
         binding.mapView.getMapAsync(this)
-
-
-
-
         mapView = binding.mapView
 
-
         if (!Places.isInitialized()) {
-
-            val MAPS_API_KEY="AIzaSyBiMZF5oOBDgpTJutx1EnwUnGg1lv_aL-8"
-
-            Places.initialize(requireContext(),MAPS_API_KEY )
+            val MAPS_API_KEY = "AIzaSyBiMZF5oOBDgpTJutx1EnwUnGg1lv_aL-8"
+            Places.initialize(requireContext(), MAPS_API_KEY)
         }
 
         mapView.getMapAsync { map ->
             googleMap = map
-            // Harita ayarları burada
+            // Harita ayarları burada (örn. marker renkleri, zoom tercihleri vs.)
         }
 
-        var autocompleteFragment = childFragmentManager.findFragmentById(R.id.autocomplete_fragment_container) as? AutocompleteSupportFragment
-
-        if (autocompleteFragment == null) {
-            autocompleteFragment = AutocompleteSupportFragment.newInstance()
+        // --- Places Autocomplete ---
+        var autocomplete = childFragmentManager.findFragmentById(R.id.autocomplete_fragment_container) as? AutocompleteSupportFragment
+        if (autocomplete == null) {
+            autocomplete = AutocompleteSupportFragment.newInstance()
             childFragmentManager.beginTransaction()
-                .replace(R.id.autocomplete_fragment_container, autocompleteFragment)
+                .replace(R.id.autocomplete_fragment_container, autocomplete)
                 .commit()
         }
-
-        // AutocompleteSupportFragment ayarlarını buraya yazabilirsin
-        autocompleteFragment.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
-        autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+        autocomplete.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
+        autocomplete.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.latLng, 15f))
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.latLng!!, 15f))
             }
-            override fun onError(status: Status) {
+            override fun onError(status: com.google.android.gms.common.api.Status) {
                 // Hata durumu
             }
         })
-
-
-
-
     }
 
+    // ------------------
+    //  Bottom Sheet Menu
+    // ------------------
+    private fun showBottomSheetMenu() {
+        val bottomSheetDialog = BottomSheetDialog(requireContext())
+        val view = layoutInflater.inflate(R.layout.bottom_sheet_menu, null)
+        bottomSheetDialog.setContentView(view)
 
+        view.findViewById<Button>(R.id.btnLogout).setOnClickListener {
+            FirebaseAuth.getInstance().signOut()
+            Toast.makeText(requireContext(), "Çıkış yapıldı", Toast.LENGTH_SHORT).show()
+            bottomSheetDialog.dismiss()
+            findNavController().navigate(R.id.action_homeMapFragment_to_registerFragment)
+        }
 
+        view.findViewById<Button>(R.id.btnMemoryList).setOnClickListener {
+            bottomSheetDialog.dismiss()
+            findNavController().navigate(R.id.action_homeMapFragment_to_memoryListFragment)
+        }
 
+        view.findViewById<Button>(R.id.btnModeToggle).setOnClickListener {
+            googleMap.mapType = when (googleMap.mapType) {
+                GoogleMap.MAP_TYPE_NORMAL -> GoogleMap.MAP_TYPE_SATELLITE
+                GoogleMap.MAP_TYPE_SATELLITE -> GoogleMap.MAP_TYPE_TERRAIN
+                GoogleMap.MAP_TYPE_TERRAIN -> GoogleMap.MAP_TYPE_NORMAL
+                else -> GoogleMap.MAP_TYPE_NORMAL
+            }
+            bottomSheetDialog.dismiss()
+        }
 
+        bottomSheetDialog.show()
+    }
 
+    // ------------------
+    //  Geofence Ekleme
+    // ------------------
     private fun addGeofence(latLng: LatLng, geofenceId: String) {
         if (!locationPermissionGranted) return
-
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(requireContext(), "Konum izni gerekli!", Toast.LENGTH_SHORT).show()
             return
         }
-
-
 
         val geofence = Geofence.Builder()
             .setRequestId(geofenceId)
@@ -223,15 +260,11 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             e.printStackTrace()
             Toast.makeText(requireContext(), "Güvenlik hatası: Konum izni eksik!", Toast.LENGTH_SHORT).show()
         }
-
     }
 
-
-
-
-
-
-
+    // ------------------
+    //  Anı Detay Dialogu
+    // ------------------
     private fun showMemoryDetailDialog(documentId: String) {
         val db = FirebaseFirestore.getInstance()
         db.collection("memories").document(documentId).get()
@@ -276,75 +309,80 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
 
 
+    // ------------------
+    //  Harita Hazır (OnMapReady)
+    // ------------------
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
-        enableMyLocation() // Bu zaten kendi içinde izin kontrolü yapıyor
-        moveCameraToUserLocation() // Kullanıcı konumuna kamerayı taşı
-
-
-
-        val lat = requireActivity().intent.getDoubleExtra("latitude", 0.0)
-        val lng = requireActivity().intent.getDoubleExtra("longitude", 0.0)
-
-        if (lat != 0.0 && lng != 0.0) {
-            val targetLocation = LatLng(lat, lng)
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(targetLocation, 16f))
-            googleMap.addMarker(MarkerOptions().position(targetLocation).title("Anın burada!"))
-        }
-
+        enableMyLocation()
+        moveCameraToUserLocation()
 
         loadExistingMemories()
 
         googleMap.setOnMapLongClickListener { latLng ->
-            openAddMemoryDialog(latLng)
+            val currentMode = viewModel.selectedMode.value
+            if (currentMode == MemoryAddMode.YERINDE_EKLE) {
+                val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+                if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                        if (location != null) {
+                            val distance = FloatArray(1)
+                            Location.distanceBetween(
+                                location.latitude, location.longitude,
+                                latLng.latitude, latLng.longitude,
+                                distance
+                            )
+                            if (distance[0] <= 50f) {
+                                openAddMemoryDialog(latLng)
+                                viewModel.onMemoryAddedInPlace(latLng.latitude, latLng.longitude)
+                                Toast.makeText(requireContext(), "Rozet kazandınız! 🎉", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(requireContext(), "Bu konumdan 50 metreden uzaksın, anı ekleyemezsin.", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            Toast.makeText(requireContext(), "Konum alınamadı.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
+                    // İzin yoksa izin istemeyi unutma
+                    Toast.makeText(requireContext(), "Konum izni verilmedi.", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                openAddMemoryDialog(latLng)
+                viewModel.onMemoryAdded() // Serbest modda konum göndermeye gerek yok
+            }
 
+            // Geofence ekle
             val geofenceId = UUID.randomUUID().toString()
             addGeofence(latLng, geofenceId)
-
-
         }
 
-        googleMap.setOnInfoWindowClickListener { marker ->
-            val documentId = marker.tag as? String ?: return@setOnInfoWindowClickListener
-            showMemoryDetailDialog(documentId)
-        }
 
     }
 
-
-
-
+    // ------------------
+    //  Yardımcı Fonksiyonlar
+    // ------------------
     private fun enableMyLocation() {
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
-            ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-        ) {
+            ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             googleMap.isMyLocationEnabled = true
         }
     }
 
     private fun moveCameraToUserLocation() {
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
-        ) return
+            ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) return
 
-        fusedLocationClient.getCurrentLocation(
-            com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
-            null
-        ).addOnSuccessListener { location ->
-            if (location != null) {
-                val userLatLng = LatLng(location.latitude, location.longitude)
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLatLng, 17f))
-            } else {
-                Toast.makeText(requireContext(), "Konum hala alınamıyor 😢", Toast.LENGTH_SHORT).show()
+        fusedLocationClient.getCurrentLocation(PRIORITY_HIGH_ACCURACY, null)
+            .addOnSuccessListener { location ->
+                if (location != null) {
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                        LatLng(location.latitude, location.longitude), 17f))
+                }
             }
-        }.addOnFailureListener {
-            Toast.makeText(requireContext(), "Konum alma başarısız oldu: ${it.message}", Toast.LENGTH_LONG).show()
-        }
     }
-
-
 
     private fun loadExistingMemories() {
         val db = FirebaseFirestore.getInstance()

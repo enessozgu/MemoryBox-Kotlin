@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bottom_sheet_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@android:color/white">
+
+    <Button
+        android:id="@+id/btnLogout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Çıkış Yap"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#FF6B6B"
+        android:padding="12dp"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.05" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="12dp" />
+
+    <Button
+        android:id="@+id/btnMemoryList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Anılarım"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#4ECDC4"
+        android:padding="12dp"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.05" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="12dp" />
+
+    <Button
+        android:id="@+id/btnModeToggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Harita modeli"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#3498db"
+        android:padding="12dp"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.05" />
+
+</LinearLayout>

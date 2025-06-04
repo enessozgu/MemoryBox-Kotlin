@@ -8,15 +8,30 @@
 
     <TextView android:id="@+id/placeName"
         android:text="Yer Adı"
-        android:textSize="18sp"
+        android:textSize="28sp"
         android:textStyle="bold"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
     <TextView android:id="@+id/placeAddress"
         android:text="Adres bilgisi"
+        android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
+
+
+    <TextView
+        android:id="@+id/localTime"
+        android:text="Yerel Saat: 18:34"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+    <TextView
+        android:id="@+id/weatherText"
+        android:text="Hava Durumu: Parçalı bulutlu, 18°C"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"/>
 
     <!-- Daha sonra buraya Static Map, hava durumu, ses çalar, AI önerileri eklenecek -->
 

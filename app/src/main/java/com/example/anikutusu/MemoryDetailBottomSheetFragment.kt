@@ -18,7 +18,14 @@
     import retrofit2.Callback
     import retrofit2.Response
     import android.location.Geocoder
+    import org.json.JSONObject
+    import java.net.HttpURLConnection
+    import java.net.URL
+    import java.text.SimpleDateFormat
+    import java.util.Date
     import java.util.Locale
+
+
 
 
     class MemoryDetailBottomSheetFragment : BottomSheetDialogFragment() {
@@ -50,6 +57,9 @@
             binding.placeName.text = arguments?.getString("text") ?: "Anı"
 
             getAddressFromLatLng(latitude, longitude)
+            fetchLocalTime(latitude, longitude)
+            fetchWeatherData(latitude, longitude)
+
 
 
 
@@ -93,6 +103,77 @@
 
 
 
+        private fun fetchLocalTime(latitude: Double, longitude: Double) {
+            val timestamp = System.currentTimeMillis() / 1000 // saniye cinsinden zaman damgası
+            val apiKey = "AIzaSyB85TYSviAbkfU8D7D7jZKgYHfopq4iHOY" // kendi API anahtarını yaz
+
+            val url =
+                "https://maps.googleapis.com/maps/api/timezone/json?location=$latitude,$longitude&timestamp=$timestamp&key=$apiKey"
+
+            Thread {
+                try {
+                    val connection = URL(url).openConnection() as HttpURLConnection
+                    connection.requestMethod = "GET"
+
+                    val response = connection.inputStream.bufferedReader().use { it.readText() }
+                    val json = JSONObject(response)
+
+                    val rawOffset = json.getDouble("rawOffset") // UTC farkı (saniye)
+                    val dstOffset = json.getDouble("dstOffset") // Yaz saati farkı (saniye)
+                    val localTimeMillis = (timestamp + rawOffset + dstOffset).toLong() * 1000
+
+                    val localDate = Date(localTimeMillis)
+                    val sdf = SimpleDateFormat("dd MMM yyyy - HH:mm", Locale("tr", "TR"))
+                    val formattedTime = sdf.format(localDate)
+
+                    activity?.runOnUiThread {
+                        binding.localTime.text = "Yerel Saat: $formattedTime"
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    activity?.runOnUiThread {
+                        binding.localTime.text = "Saat bilgisi alınamadı"
+                    }
+                }
+            }.start()
+        }
+
+
+
+        private fun fetchWeatherData(latitude: Double, longitude: Double) {
+            val apiKey = "ae5422543ef7bf046342c729e9a72be2" // kendi API key'ini gir
+            val url =
+                "https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$apiKey&units=metric&lang=tr"
+
+            Thread {
+                try {
+                    val connection = URL(url).openConnection() as HttpURLConnection
+                    connection.requestMethod = "GET"
+
+                    val response = connection.inputStream.bufferedReader().use { it.readText() }
+                    val json = JSONObject(response)
+
+                    val weatherArray = json.getJSONArray("weather")
+                    val weatherObject = weatherArray.getJSONObject(0)
+                    val description = weatherObject.getString("description")
+
+                    val main = json.getJSONObject("main")
+                    val temp = main.getDouble("temp")
+
+                    val weatherInfo = "$description, ${temp.toInt()}°C"
+
+                    activity?.runOnUiThread {
+                        binding.weatherText.text = "Hava Durumu: $weatherInfo"
+                    }
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    activity?.runOnUiThread {
+                        binding.weatherText.text = "Hava bilgisi alınamadı"
+                    }
+                }
+            }.start()
+        }
 
 
 
