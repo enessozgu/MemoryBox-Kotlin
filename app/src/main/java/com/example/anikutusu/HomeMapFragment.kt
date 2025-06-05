@@ -457,6 +457,9 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                         recordedAudioFilePath = null
                         dialogImageView = null
                         dialogEditText = null
+
+                        // Burada rozet verme fonksiyonunu çağırıyoruz:
+                        viewModel.onMemoryAddedInPlace(latLng.latitude, latLng.longitude)
                     }
                 } else {
                     Toast.makeText(requireContext(), "Anı boş olamaz!", Toast.LENGTH_SHORT).show()
@@ -476,7 +479,10 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         addMemoryDialog?.show()
     }
 
-    private fun startRecording() {
+
+
+
+        private fun startRecording() {
         val fileName = "${requireContext().externalCacheDir?.absolutePath}/${UUID.randomUUID()}.3gp"
         audioFilePath = fileName
 
@@ -555,6 +561,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                 "audioUrl" to audioUrl,
                 "timestamp" to System.currentTimeMillis()
             )
+
 
             val documentRef = db.collection("memories").add(memoryData).await()
             Toast.makeText(requireContext(), "Anı kaydedildi!", Toast.LENGTH_SHORT).show()

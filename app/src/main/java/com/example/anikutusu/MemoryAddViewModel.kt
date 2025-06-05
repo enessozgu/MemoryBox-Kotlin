@@ -6,6 +6,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import android.location.Location
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 
 class MemoryAddViewModel : ViewModel() {
 
@@ -42,12 +45,20 @@ class MemoryAddViewModel : ViewModel() {
     val badges: LiveData<Set<String>> = _badges
 
     // Rozet ekleme fonksiyonu (yeni immutable set oluşturup ata)
-    fun addBadge(badgeId: String) {
-        val current = _badges.value ?: emptySet()
-        if (!current.contains(badgeId)) {
-            _badges.value = current + badgeId  // + operatörü yeni Set oluşturur
-        }
+    fun addBadge(badgeName: String) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val db = FirebaseFirestore.getInstance()
+        val userBadgesRef = db.collection("users").document(uid)
+
+        // Belirli rozet alanını true yap
+        userBadgesRef.set(mapOf(
+            "badges.$badgeName" to true
+        ), SetOptions.merge())
+
+        _badges.value = _badges.value?.plus(badgeName)
+
     }
+
 
     fun addGalataKulesiBadgeIfNearby(userLat: Double, userLon: Double) {
         val userLocation = Location("").apply {
@@ -72,8 +83,8 @@ class MemoryAddViewModel : ViewModel() {
             longitude = userLon
         }
         val galataLocation = Location("").apply {
-            latitude = GALATA_KULESI_LAT
-            longitude = GALATA_KULESI_LON
+            latitude = SULTANAHMET_LON
+            longitude = SULTANAHMET_LAT
         }
 
         val distance = userLocation.distanceTo(galataLocation)
