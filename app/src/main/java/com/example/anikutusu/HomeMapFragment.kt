@@ -1,10 +1,12 @@
 package com.example.anikutusu
 
 import android.Manifest
+import android.R.id.toggle
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
+import androidx.core.view.GravityCompat
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.net.Uri
@@ -18,8 +20,12 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -72,6 +78,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
     private var audioFilePath: String? = null
     private var isRecording = false
     private var locationPermissionGranted = false
+    private lateinit var toggle: ActionBarDrawerToggle
 
     // --- 1. ViewModel Tanımı ---
     private lateinit var viewModel: MemoryAddViewModel
@@ -103,10 +110,17 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentHomeMapBinding.inflate(inflater, container, false)
+
+
         return binding.root
     }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -120,15 +134,66 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             binding.textViewBadgeStatus.text = "Rozet: $badgeCount"
         }
 
-        // --- Menü Butonu ---
+
+
+        val toolbar = binding.toolbar
+        toolbar.title = "Anı Kutusu"
+
+        val activity = requireActivity() as AppCompatActivity
+        activity.setSupportActionBar(toolbar)
+
+        val drawerLayout = binding.drawerLayout
+
+        toggle = ActionBarDrawerToggle(
+            activity,
+            drawerLayout,
+            toolbar,
+            R.string.navigation_drawer_open,
+            R.string.navigation_drawer_close
+        )
+
+        drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+
         binding.btnShowMenu.setOnClickListener {
-            showBottomSheetMenu()
+            drawerLayout.openDrawer(GravityCompat.START)
         }
+
+        // Harita dokunuşunda drawer'ın olaya karışmasını engelle
+        binding.mapView.setOnTouchListener { _, event ->
+            drawerLayout.requestDisallowInterceptTouchEvent(true)
+            false
+        }
+
+        val autocompleteFragment = AutocompleteSupportFragment.newInstance().apply {
+            setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
+            setHint("Konum Ara")
+        }
+
+        childFragmentManager.beginTransaction()
+            .replace(R.id.autocomplete_fragment_container, autocompleteFragment)
+            .commit()
+
+        // Kapanmaması için focus'u al
+        view.post {
+            autocompleteFragment.view?.isFocusableInTouchMode = true
+            autocompleteFragment.view?.requestFocus()
+        }
+
+        // Otomatik arama kutusunun margin/padding ayarı
+        val autocompleteContainer = binding.autocompleteFragmentContainer
+
+
+
+
 
         // --- Mod Değiştirme Butonu ---
         binding.btnModSec.setOnClickListener {
             viewModel.toggleMode()
         }
+
+
+
 
         viewModel.selectedMode.observe(viewLifecycleOwner) { mode ->
             binding.btnModSec.text = when (mode) {
@@ -142,6 +207,8 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
         Log.d("AuthStatus", "currentUser: ${FirebaseAuth.getInstance().currentUser?.uid}")
 
+
+
         // --- İzinleri İste ---
         locationAndAudioPermissionRequest.launch(
             arrayOf(
@@ -151,13 +218,16 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             )
         )
 
+
+
+
         // --- Haritayı Başlat ---
         binding.mapView.onCreate(savedInstanceState)
         binding.mapView.getMapAsync(this)
         mapView = binding.mapView
 
         if (!Places.isInitialized()) {
-            val MAPS_API_KEY = ""
+            val MAPS_API_KEY = "AIzaSyBiMZF5oOBDgpTJutx1EnwUnGg1lv_aL-8"
             Places.initialize(requireContext(), MAPS_API_KEY)
         }
 
@@ -165,6 +235,13 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             googleMap = map
             // Harita ayarları burada (örn. marker renkleri, zoom tercihleri vs.)
         }
+
+
+
+
+
+
+
 
         // --- Places Autocomplete ---
         var autocomplete = childFragmentManager.findFragmentById(R.id.autocomplete_fragment_container) as? AutocompleteSupportFragment
@@ -176,7 +253,10 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         }
         autocomplete.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
         autocomplete.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+
             override fun onPlaceSelected(place: Place) {
+                binding.drawerLayout.requestDisallowInterceptTouchEvent(true)
+                false
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.latLng!!, 15f))
             }
             override fun onError(status: com.google.android.gms.common.api.Status) {
@@ -184,6 +264,11 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             }
         })
     }
+
+
+
+
+
 
     // ------------------
     //  Bottom Sheet Menu

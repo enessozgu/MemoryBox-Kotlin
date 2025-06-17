@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.AniKutusu" parent="android:Theme.Material.Light.NoActionBar" />
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- İstersen buraya özelleştirmeler -->
+    <!-- Theme.AniKutusu, AppCompat temasından türemeli -->
+    <style name="Theme.AniKutusu" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Özelleştirmeleri buraya ekleyebilirsin -->
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryDark">@color/purple_700</item>
         <item name="colorAccent">@color/teal_200</item>
     </style>
 
+    <!-- AppTheme istersen kaldırabilir veya başka amaçla kullanabilirsin -->
+    <!--
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryDark">@color/purple_700</item>
+        <item name="colorAccent">@color/teal_200</item>
+    </style>
+    -->
 
 </resources>
