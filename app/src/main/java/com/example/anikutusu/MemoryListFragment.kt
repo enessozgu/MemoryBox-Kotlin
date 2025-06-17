@@ -5,15 +5,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.anikutusu.adapter.MemoryAdapter
 import com.example.anikutusu.databinding.FragmentMemoryListBinding
 import com.example.anikutusu.model.MemoryItem
+import com.google.android.gms.maps.GoogleMap
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class MemoryListFragment : Fragment() {
+
+    private lateinit var googleMap: GoogleMap
 
 
 
@@ -43,6 +50,8 @@ class MemoryListFragment : Fragment() {
         return binding.root
     }
 
+
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -50,7 +59,78 @@ class MemoryListFragment : Fragment() {
         binding.recyclerViewMemories.adapter = adapter
 
         loadMemories()
+
+
+        binding.homeNavigationView.setNavigationItemSelectedListener {
+            showDrawerMenuItemAction(it.itemId)
+            true
+        }
+
+
+
+
+        val toolbar = binding.toolbar
+        toolbar.title = "Anılarım"
+
+        val activity = requireActivity() as AppCompatActivity
+        activity.setSupportActionBar(toolbar)
+
+        val drawerLayout = binding.drawerLayout
+
+        val toggle = ActionBarDrawerToggle(
+            activity,
+            drawerLayout,
+            toolbar,
+            R.string.navigation_drawer_open,
+            R.string.navigation_drawer_close
+        )
+        drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+
+
+
+
+
+
+
+
     }
+
+
+
+
+
+
+
+    private fun showDrawerMenuItemAction(menuItemId: Int) {
+        when (menuItemId) {
+
+            R.id.nav_map -> {
+
+                findNavController().navigate(R.id.action_memoryListFragment_to_homeMapFragment)
+            }
+
+
+            R.id.nav_badges -> {
+                FirebaseAuth.getInstance().signOut()
+                Toast.makeText(requireContext(), "Çıkış yapıldı", Toast.LENGTH_SHORT).show()
+                findNavController().navigate(R.id.action_memoryListFragment_to_registerFragment)
+            }
+
+            R.id.nav_memories -> {
+                Toast.makeText(requireContext(), "Zaten buradasın 👀", Toast.LENGTH_SHORT).show()
+            }
+
+            R.id.nav_settings -> {
+
+            }
+        }
+    }
+
+
+
+
+
 
     private fun loadMemories() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return

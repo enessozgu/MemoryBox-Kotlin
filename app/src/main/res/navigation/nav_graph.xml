@@ -18,15 +18,6 @@
 
     </fragment>
 
-    <fragment
-        android:id="@+id/welcomeFragment"
-        android:name="com.example.anikutusu.WelcomeFragment"
-        android:label="Welcome">
-        <action
-            android:id="@+id/action_welcomeFragment_to_homeMapFragment"
-            app:destination="@id/homeMapFragment" />
-    </fragment>
-
 
     <fragment
         android:id="@+id/loginFragment"
@@ -58,6 +49,13 @@
         android:id="@+id/memoryListFragment"
         android:name="com.example.anikutusu.MemoryListFragment"
         android:label="fragment_memory_list2"
-        tools:layout="@layout/fragment_memory_list" />
+        tools:layout="@layout/fragment_memory_list" >
+        <action
+            android:id="@+id/action_memoryListFragment_to_homeMapFragment"
+            app:destination="@id/homeMapFragment" />
+        <action
+            android:id="@+id/action_memoryListFragment_to_registerFragment"
+            app:destination="@id/registerFragment" />
+    </fragment>
 
 </navigation>
