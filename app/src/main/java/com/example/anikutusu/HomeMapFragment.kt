@@ -157,6 +157,8 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             viewModel.toggleMode()
         }
 
+
+
         viewModel.selectedMode.observe(viewLifecycleOwner) { mode ->
             binding.btnModSec.text = when (mode) {
                 MemoryAddMode.SERBEST_EKLE -> "Mod: Serbest Ekle"
@@ -207,7 +209,9 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.latLng!!, 15f))
             }
             override fun onError(status: com.google.android.gms.common.api.Status) {
-                Toast.makeText(requireContext(), "HATA VAR LOO", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Hata: ${status.statusMessage}", Toast.LENGTH_LONG).show()
+                Log.e("AutocompleteError", "Place error: $status")
+
             }
         })
     }
