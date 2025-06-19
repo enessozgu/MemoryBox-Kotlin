@@ -8,11 +8,13 @@
         android:title="Anı Listem"
         android:icon="@drawable/notes" />
 
+    <item android:id="@+id/nav_settings"
+        android:title="Harita Modeli"
+        android:icon="@drawable/settings" />
+
     <item android:id="@+id/nav_badges"
-        android:title="Rozetler"
+        android:title="Çıkış Yap"
         android:icon="@drawable/archive" />
 
-    <item android:id="@+id/nav_settings"
-        android:title="Ayarlar"
-        android:icon="@drawable/settings" />
+
 </menu>

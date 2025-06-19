@@ -1,12 +1,10 @@
 package com.example.anikutusu
 
 import android.Manifest
-import android.R.id.toggle
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
-import androidx.core.view.GravityCompat
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.net.Uri
@@ -24,8 +22,6 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-
-import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -60,15 +56,12 @@ import com.example.anikutusu.MemoryAddMode
 import com.google.android.libraries.places.api.Places
 import com.ornek.anikutusu.ui.viewmodel.MemoryAddViewModel
 
-
-
-
-
 class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
     private var _binding: FragmentHomeMapBinding? = null
     private val binding get() = _binding!!
     private lateinit var mapView: MapView
+    private lateinit var autocompleteFragment: AutocompleteSupportFragment
     private lateinit var googleMap: GoogleMap
     private lateinit var geofencingClient: GeofencingClient
     private val GEOFENCE_RADIUS_IN_METERS = 100f
@@ -81,7 +74,6 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
     private var audioFilePath: String? = null
     private var isRecording = false
     private var locationPermissionGranted = false
-    private lateinit var toggle: ActionBarDrawerToggle
 
     // --- 1. ViewModel Tanımı ---
     private lateinit var viewModel: MemoryAddViewModel
@@ -93,9 +85,6 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             dialogImageView?.visibility = View.VISIBLE
         }
     }
-
-
-
 
     private val locationAndAudioPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -116,27 +105,13 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentHomeMapBinding.inflate(inflater, container, false)
-
-
         return binding.root
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-
-        binding.homeNavigationView.setNavigationItemSelectedListener {
-            showDrawerMenuItemAction(it.itemId)
-            true
-        }
-
 
         // --- 2. ViewModel’i Başlat ---
         viewModel = ViewModelProvider(this)[MemoryAddViewModel::class.java]
@@ -150,71 +125,37 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
 
         val toolbar = binding.toolbar
-        toolbar.title = "Anı Kutusu"
+        toolbar.title = "Anılarım"
 
         val activity = requireActivity() as AppCompatActivity
         activity.setSupportActionBar(toolbar)
 
         val drawerLayout = binding.drawerLayout
 
-        toggle = ActionBarDrawerToggle(
+        val toggle = ActionBarDrawerToggle(
             activity,
             drawerLayout,
             toolbar,
             R.string.navigation_drawer_open,
             R.string.navigation_drawer_close
         )
-
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
 
-        // Harita dokunuşunda drawer'ın olaya karışmasını engelle
-        binding.mapView.setOnTouchListener { _, event ->
-            drawerLayout.requestDisallowInterceptTouchEvent(true)
-            false
+
+
+
+        binding.homeNavigationView.setNavigationItemSelectedListener {
+            showDrawerMenuItemAction(it.itemId)
+            true
         }
-
-
-
-        val autocompleteFragment = AutocompleteSupportFragment.newInstance().apply {
-            setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
-            setHint("Konum Ara")
-        }
-
-        childFragmentManager.beginTransaction()
-            .replace(R.id.autocomplete_fragment_container, autocompleteFragment)
-            .commit()
-
-        // Kapanmaması için focus'u al
-        view.post {
-            autocompleteFragment.view?.isFocusableInTouchMode = true
-            autocompleteFragment.view?.requestFocus()
-        }
-
-        // Otomatik arama kutusunun margin/padding ayarı
-        val autocompleteContainer = binding.autocompleteFragmentContainer
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         // --- Mod Değiştirme Butonu ---
         binding.btnModSec.setOnClickListener {
             viewModel.toggleMode()
         }
-
-
-
 
         viewModel.selectedMode.observe(viewLifecycleOwner) { mode ->
             binding.btnModSec.text = when (mode) {
@@ -228,8 +169,6 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
         Log.d("AuthStatus", "currentUser: ${FirebaseAuth.getInstance().currentUser?.uid}")
 
-
-
         // --- İzinleri İste ---
         locationAndAudioPermissionRequest.launch(
             arrayOf(
@@ -238,9 +177,6 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                 Manifest.permission.RECORD_AUDIO
             )
         )
-
-
-
 
         // --- Haritayı Başlat ---
         binding.mapView.onCreate(savedInstanceState)
@@ -257,13 +193,6 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             // Harita ayarları burada (örn. marker renkleri, zoom tercihleri vs.)
         }
 
-
-
-
-
-
-
-
         // --- Places Autocomplete ---
         var autocomplete = childFragmentManager.findFragmentById(R.id.autocomplete_fragment_container) as? AutocompleteSupportFragment
         if (autocomplete == null) {
@@ -274,14 +203,11 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         }
         autocomplete.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
         autocomplete.setOnPlaceSelectedListener(object : PlaceSelectionListener {
-
             override fun onPlaceSelected(place: Place) {
-                binding.drawerLayout.requestDisallowInterceptTouchEvent(true)
-                false
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.latLng!!, 15f))
             }
             override fun onError(status: com.google.android.gms.common.api.Status) {
-                // Hata durumu
+                Toast.makeText(requireContext(), "HATA VAR LOO", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -291,6 +217,13 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
     private fun showDrawerMenuItemAction(menuItemId: Int) {
         when (menuItemId) {
+
+            R.id.nav_map -> {
+
+                Toast.makeText(requireContext(), "Zaten buradasın 👀", Toast.LENGTH_SHORT).show()
+            }
+
+
             R.id.nav_badges -> {
                 FirebaseAuth.getInstance().signOut()
                 Toast.makeText(requireContext(), "Çıkış yapıldı", Toast.LENGTH_SHORT).show()
@@ -299,18 +232,24 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
             R.id.nav_memories -> {
                 findNavController().navigate(R.id.action_homeMapFragment_to_memoryListFragment)
+
             }
 
             R.id.nav_settings -> {
-                googleMap.mapType = when (googleMap.mapType) {
-                    GoogleMap.MAP_TYPE_NORMAL -> GoogleMap.MAP_TYPE_SATELLITE
-                    GoogleMap.MAP_TYPE_SATELLITE -> GoogleMap.MAP_TYPE_TERRAIN
-                    GoogleMap.MAP_TYPE_TERRAIN -> GoogleMap.MAP_TYPE_NORMAL
-                    else -> GoogleMap.MAP_TYPE_NORMAL
-                }
+
+                    googleMap.mapType = when (googleMap.mapType) {
+                        GoogleMap.MAP_TYPE_NORMAL -> GoogleMap.MAP_TYPE_SATELLITE
+                        GoogleMap.MAP_TYPE_SATELLITE -> GoogleMap.MAP_TYPE_TERRAIN
+                        GoogleMap.MAP_TYPE_TERRAIN -> GoogleMap.MAP_TYPE_NORMAL
+                        else -> GoogleMap.MAP_TYPE_NORMAL
+                    }
+
             }
         }
     }
+
+
+
 
 
 
@@ -357,16 +296,6 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             Toast.makeText(requireContext(), "Güvenlik hatası: Konum izni eksik!", Toast.LENGTH_SHORT).show()
         }
     }
-
-
-
-
-
-
-
-
-
-
 
     // ------------------
     //  Anı Detay Dialogu
