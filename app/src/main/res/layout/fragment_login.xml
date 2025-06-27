@@ -1,62 +1,118 @@
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:padding="32dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#F9FAFB"
-    android:gravity="center_vertical">
+    android:layout_height="match_parent">
 
-    <!-- Başlık -->
+    <!-- Arka plan görseli -->
+
+    <!-- Username EditText -->
+
+    <!-- Password EditText -->
+
+    <!-- Giriş Yap Button -->
+
+    <ImageView
+        android:id="@+id/bgImage"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:adjustViewBounds="true"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        android:src="@drawable/vector_background"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
+
     <TextView
-        android:id="@+id/appTitle"
+        android:id="@+id/titleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Anı Kutusu"
-        android:textSize="36sp"
+        android:layout_marginTop="168dp"
+        android:text="Welcome Back!"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="#1E88E5"
-        android:fontFamily="sans-serif-medium"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="48dp"
-        android:letterSpacing="0.05"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
         android:id="@+id/emailEditText"
-        android:hint="Email"
-        android:inputType="textEmailAddress"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="48dp"
-        android:background="@drawable/edittext_background"
-        android:padding="12dp"
-        android:layout_marginBottom="16dp"
-        android:textColor="#333333"
+        android:layout_marginStart="64dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="64dp"
+        android:paddingStart="16dp"
+
+        android:background="@drawable/bg_input_field"
+        android:gravity="center_vertical"
+        android:hint="   Mail"
+        android:inputType="textEmailAddress"
+        android:textColor="#3E002B"
+        android:textColorHint="#993E002B"
         android:textSize="16sp"
-        android:drawableStart="@android:drawable/ic_dialog_email"
-        android:drawablePadding="12dp" />
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/titleText" />
 
     <EditText
         android:id="@+id/passwordEditText"
-        android:hint="Şifre"
-        android:inputType="textPassword"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="48dp"
-        android:background="@drawable/edittext_background"
-        android:padding="12dp"
-        android:layout_marginBottom="24dp"
-        android:textColor="#333333"
+        android:paddingStart="16dp"
+
+        android:layout_marginStart="64dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="64dp"
+        android:background="@drawable/bg_input_field"
+        android:gravity="center_vertical"
+        android:hint=" Password"
+        android:inputType="textPassword"
+        android:textColor="#3E002B"
+
+        android:textColorHint="#993E002B"
+
         android:textSize="16sp"
-        android:drawableStart="@android:drawable/ic_lock_idle_lock"
-        android:drawablePadding="12dp" />
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@+id/emailEditText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 
     <Button
         android:id="@+id/loginButton"
-        android:text="Giriş Yap"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="48dp"
-        android:background="@drawable/button_rounded_gradient"
+        android:layout_marginStart="64dp"
+        android:layout_marginEnd="64dp"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/btn_signin_background"
+        android:text="Sign In"
         android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/passwordEditText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-</LinearLayout>
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/googleSignInButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="76dp"
+        android:layout_marginEnd="140dp"
+        android:background="@color/res"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/loginButton" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

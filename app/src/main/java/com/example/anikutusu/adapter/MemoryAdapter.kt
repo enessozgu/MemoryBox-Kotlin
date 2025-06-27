@@ -61,15 +61,28 @@ class MemoryAdapter(
             buttonStop.visibility = View.VISIBLE
 
             buttonPlay.setOnClickListener {
-                mediaPlayer?.release()
-                mediaPlayer = MediaPlayer().apply {
-                    setDataSource(memory.audioUrl)
-                    prepare()
-                    start()
+                try {
+                    mediaPlayer?.release()
+                    mediaPlayer = MediaPlayer().apply {
+                        setOnPreparedListener {
+                            it.start()
+                            Toast.makeText(holder.itemView.context, "Ses oynatılıyor", Toast.LENGTH_SHORT).show()
+                        }
+                        setOnCompletionListener {
+                            release()
+                            mediaPlayer = null
+                            currentlyPlayingPosition = null
+                            notifyItemChanged(holder.adapterPosition)
+                        }
+                        setDataSource(memory.audioUrl)
+                        prepareAsync()  // burada senkron prepare() yerine async kullan
+                    }
+                    currentlyPlayingPosition = holder.adapterPosition
+                } catch (e: Exception) {
+                    Toast.makeText(holder.itemView.context, "Ses oynatılamadı: ${e.message}", Toast.LENGTH_LONG).show()
                 }
-                currentlyPlayingPosition = holder.adapterPosition
-                Toast.makeText(holder.itemView.context, "Ses oynatılıyor", Toast.LENGTH_SHORT).show()
             }
+
 
             buttonStop.setOnClickListener {
                 if (currentlyPlayingPosition == holder.adapterPosition) {
