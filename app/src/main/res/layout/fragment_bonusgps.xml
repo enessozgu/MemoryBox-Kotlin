@@ -1,4 +1,15 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawerLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/register_fragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -9,4 +20,26 @@
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:paddingBottom="16dp" />
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:paddingTop="10dp"
+
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:background="@color/res"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+
+
 </FrameLayout>
+
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/homeNavigationView"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        app:menu="@menu/drawer_menu"
+        app:headerLayout="@layout/drawer_header" />
+</androidx.drawerlayout.widget.DrawerLayout>
+

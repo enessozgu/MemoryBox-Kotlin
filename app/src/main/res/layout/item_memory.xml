@@ -37,25 +37,16 @@
             android:id="@+id/buttonPlayAudio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Çal"
+            android:text="Play"
             android:visibility="gone"
             android:layout_marginTop="8dp" />
         <Button
             android:id="@+id/buttonStopAudio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Durdur"
+            android:text="Stop"
             android:layout_marginTop="4dp"
             android:visibility="gone" />
-
-        <Button
-            android:id="@+id/buttonGoToLocation"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="📍 Anıya Git"
-            android:layout_marginTop="8dp"
-            android:backgroundTint="@color/purple_500"
-            android:textColor="@android:color/white"/>
 
     </LinearLayout>
 

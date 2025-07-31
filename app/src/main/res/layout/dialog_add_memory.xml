@@ -13,7 +13,7 @@
         android:id="@+id/editTextMemory"
         android:layout_width="match_parent"
         android:layout_height="120dp"
-        android:hint="Anını yaz..."
+        android:hint="Write down the moment..."
         android:background="@drawable/edit_text_bg"
         android:gravity="top|start"
         android:padding="16dp"
@@ -39,7 +39,7 @@
         android:id="@+id/buttonSelectPhoto"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:text="Fotoğraf Seç"
+        android:text="Select Photo"
         android:textColor="#FFFFFF"
         android:backgroundTint="#3F51B5"
         android:layout_marginTop="20dp"
@@ -52,20 +52,20 @@
         android:id="@+id/buttonRecordAudio"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:text="Ses Kaydı Başlat"
+        android:text="Start recording"
         android:textColor="#FFFFFF"
-        android:backgroundTint="#FF5722"
+
         android:layout_marginTop="12dp"
         android:elevation="4dp"
         android:fontFamily="sans-serif-medium"
         android:letterSpacing="0.05"
-        android:background="@drawable/rounded_button" />
+        android:background="@drawable/btn_rounded_background" />
 
     <Button
         android:id="@+id/buttonStopAudio"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:text="Kaydı Durdur"
+        android:text="Stop recording"
         android:textColor="#FFFFFF"
         android:backgroundTint="#9E9E9E"
         android:visibility="gone"

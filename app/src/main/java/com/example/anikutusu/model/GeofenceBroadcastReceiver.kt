@@ -1,15 +1,15 @@
-package com.example.anikutusu
+package com.example.anikutusu.model
 
+import android.R
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.google.android.gms.location.GeofencingEvent
-import android.app.NotificationManager
-import android.app.NotificationChannel
-import android.app.PendingIntent
-import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingEvent
 
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
@@ -36,13 +36,17 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         // Kanal oluştur (Android 8+ için)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "Geofence Bildirimleri", NotificationManager.IMPORTANCE_HIGH)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId,
+                "Geofence Bildirimleri",
+                NotificationManager.IMPORTANCE_HIGH
+            )
             notificationManager.createNotificationChannel(channel)
         }
 
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(android.R.drawable.ic_dialog_map)
+            .setSmallIcon(R.drawable.ic_dialog_map)
             .setContentTitle(title)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

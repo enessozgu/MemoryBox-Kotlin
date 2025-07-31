@@ -30,9 +30,11 @@
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
+            android:paddingTop="10dp"
+
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:layout_height="70dp"
+            android:background="@color/res"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
 
 
@@ -53,7 +55,7 @@
             android:id="@+id/anlik"
             android:layout_width="40dp"
             android:layout_height="50dp"
-            android:background="@drawable/rounded_button"
+            android:background="@drawable/btn_rounded_background"
             android:layout_gravity="bottom|start"
             android:layout_marginStart="335dp"
             android:text="!"
@@ -75,9 +77,9 @@
             android:layout_gravity="top|start"
             android:layout_marginStart="5dp"
             android:layout_marginTop="156dp"
-            android:background="#80000000"
+            android:background="@drawable/btn_signin_background"
             android:padding="15dp"
-            android:text="Rozet: 0"
+            android:text="Badge: 0"
             android:textColor="#FFFFFF"
             android:textSize="19sp" />
 

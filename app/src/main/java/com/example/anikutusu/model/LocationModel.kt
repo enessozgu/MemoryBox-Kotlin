@@ -1,4 +1,4 @@
-package com.example.anikutusu
+package com.example.anikutusu.model
 
 data class LocationModel(
     val title: String,

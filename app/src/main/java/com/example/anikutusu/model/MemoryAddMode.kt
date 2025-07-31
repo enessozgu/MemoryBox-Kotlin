@@ -1,4 +1,4 @@
-package com.example.anikutusu
+package com.example.anikutusu.model
 
 enum class MemoryAddMode {
     SERBEST_EKLE,

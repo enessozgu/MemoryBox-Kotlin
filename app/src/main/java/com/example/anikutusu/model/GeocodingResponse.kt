@@ -1,4 +1,4 @@
-package com.example.anikutusu
+package com.example.anikutusu.model
 
 data class GeocodingResponse (
     val results: List<Result>,

@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/nav_map"
-        android:title="Harita"
+        android:title="Map"
         android:icon="@drawable/map" />
 
     <item android:id="@+id/nav_memories"
-        android:title="Anı Listem"
+        android:title="My Memories"
         android:icon="@drawable/notes" />
 
     <item android:id="@+id/nav_settings"
-        android:title="Harita Modeli"
+        android:title="Map Model"
         android:icon="@drawable/settings" />
 
     <item android:id="@+id/nav_rozet"
-        android:title="Ödüllü Konumlar"
+        android:title="Award-winning locations"
         android:icon="@drawable/archive" />
 
     <item android:id="@+id/nav_badges"
-        android:title="Çıkış Yap"
-        android:icon="@drawable/archive" />
+        android:title="Log out"
+        android:icon="@drawable/exit" />
 
 
 </menu>

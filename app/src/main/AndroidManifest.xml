@@ -27,9 +27,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/memorylogo"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/memorylogo"
         android:supportsRtl="true"
         android:theme="@style/Theme.AniKutusu"
         tools:targetApi="31">
@@ -38,7 +38,7 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyB85TYSviAbkfU8D7D7jZKgYHfopq4iHOY" />
 
-        <receiver android:name=".GeofenceBroadcastReceiver" android:exported="true"/>
+        <receiver android:name=".model.GeofenceBroadcastReceiver" android:exported="true"/>
 
 
 

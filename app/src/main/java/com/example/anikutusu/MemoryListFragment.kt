@@ -113,12 +113,16 @@ class MemoryListFragment : Fragment() {
 
             R.id.nav_badges -> {
                 FirebaseAuth.getInstance().signOut()
-                Toast.makeText(requireContext(), "Çıkış yapıldı", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Exit made", Toast.LENGTH_SHORT).show()
                 findNavController().navigate(R.id.action_memoryListFragment_to_registerFragment)
             }
 
             R.id.nav_memories -> {
-                Toast.makeText(requireContext(), "Zaten buradasın 👀", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "You're already here 👀", Toast.LENGTH_SHORT).show()
+            }
+
+            R.id.nav_rozet -> {
+                findNavController().navigate(R.id.action_memoryListFragment_to_bonusgps)
             }
 
             R.id.nav_settings -> {

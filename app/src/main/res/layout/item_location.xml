@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:layout_marginTop="75dp"
     android:padding="12dp"
     android:background="@android:color/white"
     android:elevation="2dp"
@@ -13,7 +14,7 @@
         android:id="@+id/titleText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Konum Başlığı"
+        android:text="Location Title"
         android:textStyle="bold"
         android:textSize="16sp" />
 
@@ -36,13 +37,18 @@
             android:id="@+id/showOnMapButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Haritada Göster" />
+            android:textColor="@color/white"
+            android:textSize="10dp"
+            android:background="@drawable/btn_rounded_background"
+            android:text="Show on map" />
 
         <Button
             android:id="@+id/addMemoryButton"
             android:layout_width="wrap_content"
+            android:background="@drawable/btn_signin_background"
             android:layout_height="wrap_content"
-            android:text="Anı Ekle"
+            android:textColor="@color/white"
+            android:text="Add"
             android:layout_marginStart="8dp" />
     </LinearLayout>
 </LinearLayout>

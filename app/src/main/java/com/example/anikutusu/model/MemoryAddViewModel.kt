@@ -1,11 +1,10 @@
-package com.ornek.anikutusu.ui.viewmodel
+package com.example.anikutusu.model
 
-import com.example.anikutusu.MemoryAddMode
-
+import android.location.Location
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import android.location.Location
+import com.example.anikutusu.model.MemoryAddMode
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions

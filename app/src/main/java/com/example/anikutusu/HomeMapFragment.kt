@@ -52,11 +52,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.util.UUID
-import com.example.anikutusu.MemoryAddMode
+import com.example.anikutusu.model.MemoryAddMode
+import com.example.anikutusu.model.GeofenceBroadcastReceiver
 import com.google.android.libraries.places.api.Places
 import com.google.firebase.Firebase
 import com.google.firebase.storage.storage
-import com.ornek.anikutusu.ui.viewmodel.MemoryAddViewModel
+import com.example.anikutusu.model.MemoryAddViewModel
 
 class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
@@ -182,8 +183,8 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
         viewModel.selectedMode.observe(viewLifecycleOwner) { mode ->
             binding.btnModSec.text = when (mode) {
-                MemoryAddMode.SERBEST_EKLE -> "Mod: Serbest Ekle"
-                MemoryAddMode.YERINDE_EKLE -> "Mod: Yerinde Ekle"
+                MemoryAddMode.SERBEST_EKLE -> "Mode: Free Add"
+                MemoryAddMode.YERINDE_EKLE -> "Mode: Insert in Place"
             }
         }
 
@@ -249,13 +250,13 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
             R.id.nav_map -> {
 
-                Toast.makeText(requireContext(), "Zaten buradasın 👀", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "You're already here 👀", Toast.LENGTH_SHORT).show()
             }
 
 
             R.id.nav_badges -> {
                 FirebaseAuth.getInstance().signOut()
-                Toast.makeText(requireContext(), "Çıkış yapıldı", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Exit made", Toast.LENGTH_SHORT).show()
                 findNavController().navigate(R.id.action_homeMapFragment_to_registerFragment)
             }
 
@@ -294,7 +295,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                 location?.let {
                     val userLatLng = LatLng(it.latitude, it.longitude)
                     googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(userLatLng, 16f))
-                    googleMap?.addMarker(MarkerOptions().position(userLatLng).title("Anlık Konum"))
+
                 }
             }
         }
@@ -338,7 +339,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                     Toast.makeText(requireContext(), "Geofence eklendi!", Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener { e ->
-                    Toast.makeText(requireContext(), "Geofence eklenemedi: ${e.message}", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(requireContext(), "Geofence eklenemedi: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
         } catch (e: SecurityException) {
             e.printStackTrace()
@@ -437,14 +438,14 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                                 viewModel.addMemory(latLng.latitude, latLng.longitude)
                                 Toast.makeText(requireContext(), "Rozet kazandınız! 🎉", Toast.LENGTH_SHORT).show()
                             } else {
-                                Toast.makeText(requireContext(), "Bu konumdan 50 metreden uzaksın, anı ekleyemezsin.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(requireContext(), "You are 50 meters away from this location, you cannot add a memory.", Toast.LENGTH_SHORT).show()
                             }
                         } else {
-                            Toast.makeText(requireContext(), "Konum alınamadı.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), "Location could not be obtained.", Toast.LENGTH_SHORT).show()
                         }
                     }
                 } else {
-                    Toast.makeText(requireContext(), "Konum izni verilmedi.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Location permission not granted.", Toast.LENGTH_SHORT).show()
                     // Gerekirse burada izin isteme işlemi tetiklenebilir
                 }
             } else {
