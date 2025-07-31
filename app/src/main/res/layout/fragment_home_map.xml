@@ -40,14 +40,33 @@
             android:id="@+id/btnModSec"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Mod: Serbest Ekle"
-            android:background="@drawable/btn_rounded_background"
-            android:textColor="#FFFFFF"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="8dp"
             android:layout_gravity="bottom|start"
             android:layout_marginStart="16dp"
-            android:layout_marginBottom="56dp" />
+            android:layout_marginBottom="56dp"
+            android:background="@drawable/btn_rounded_background"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:text="Mod: Serbest Ekle"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/anlik"
+            android:layout_width="40dp"
+            android:layout_height="50dp"
+            android:background="@drawable/rounded_button"
+            android:layout_gravity="bottom|start"
+            android:layout_marginStart="335dp"
+            android:text="!"
+            android:textColor="@color/white"
+            android:textSize="30dp"
+            android:layout_marginBottom="56dp"
+            >
+
+        </Button>
+
+
+
+
 
         <TextView
             android:id="@+id/textViewBadgeStatus"
@@ -61,6 +80,7 @@
             android:text="Rozet: 0"
             android:textColor="#FFFFFF"
             android:textSize="19sp" />
+
 
     </FrameLayout>
 

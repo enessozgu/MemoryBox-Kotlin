@@ -25,12 +25,14 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
 import com.example.anikutusu.databinding.FragmentHomeMapBinding
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
@@ -44,8 +46,6 @@ import com.google.android.libraries.places.widget.listener.PlaceSelectionListene
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -54,9 +54,14 @@ import java.io.File
 import java.util.UUID
 import com.example.anikutusu.MemoryAddMode
 import com.google.android.libraries.places.api.Places
+import com.google.firebase.Firebase
+import com.google.firebase.storage.storage
 import com.ornek.anikutusu.ui.viewmodel.MemoryAddViewModel
 
 class HomeMapFragment : Fragment(), OnMapReadyCallback {
+
+    private var passedLatitude: Float? = null
+    private var passedLongitude: Float? = null
 
     private var _binding: FragmentHomeMapBinding? = null
     private val binding get() = _binding!!
@@ -64,6 +69,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var autocompleteFragment: AutocompleteSupportFragment
     private lateinit var googleMap: GoogleMap
     private lateinit var geofencingClient: GeofencingClient
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val GEOFENCE_RADIUS_IN_METERS = 100f
     private var selectedImageUri: Uri? = null
     private var dialogImageView: ImageView? = null
@@ -105,6 +111,14 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+            passedLatitude = it.getFloat("latitude")
+            passedLongitude = it.getFloat("longitude")
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentHomeMapBinding.inflate(inflater, container, false)
         return binding.root
@@ -112,6 +126,8 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
         // --- 2. ViewModel’i Başlat ---
         viewModel = ViewModelProvider(this)[MemoryAddViewModel::class.java]
@@ -121,6 +137,11 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             val badgeCount = badgesSet.size
             binding.textViewBadgeStatus.text = "Rozet: $badgeCount"
         }
+
+
+     binding.anlik.setOnClickListener {
+         goToUserLocation()
+     }
 
 
 
@@ -185,8 +206,9 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         binding.mapView.getMapAsync(this)
         mapView = binding.mapView
 
+
         if (!Places.isInitialized()) {
-            val MAPS_API_KEY = "AIzaSyBiMZF5oOBDgpTJutx1EnwUnGg1lv_aL-8"
+            val MAPS_API_KEY = "AIzaSyB85TYSviAbkfU8D7D7jZKgYHfopq4iHOY"
             Places.initialize(requireContext(), MAPS_API_KEY)
         }
 
@@ -201,19 +223,22 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             autocomplete = AutocompleteSupportFragment.newInstance()
             childFragmentManager.beginTransaction()
                 .replace(R.id.autocomplete_fragment_container, autocomplete)
-                .commit()
+                .commitNow()  // commitNow ile eşzamanlı işlem
         }
+
         autocomplete.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
+
         autocomplete.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.latLng!!, 15f))
             }
+
             override fun onError(status: com.google.android.gms.common.api.Status) {
                 Toast.makeText(requireContext(), "Hata: ${status.statusMessage}", Toast.LENGTH_LONG).show()
                 Log.e("AutocompleteError", "Place error: $status")
-
             }
         })
+
     }
 
 
@@ -239,6 +264,13 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
             }
 
+            R.id.nav_rozet -> {
+                findNavController().navigate(R.id.action_homeMapFragment_to_bonusgps)
+
+            }
+
+
+
             R.id.nav_settings -> {
 
                     googleMap.mapType = when (googleMap.mapType) {
@@ -254,6 +286,19 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
 
 
+    private fun goToUserLocation() {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                location?.let {
+                    val userLatLng = LatLng(it.latitude, it.longitude)
+                    googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(userLatLng, 16f))
+                    googleMap?.addMarker(MarkerOptions().position(userLatLng).title("Anlık Konum"))
+                }
+            }
+        }
+    }
 
 
 
@@ -347,22 +392,37 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
 
 
-
+    val args: HomeMapFragmentArgs by navArgs()
     // ------------------
     //  Harita Hazır (OnMapReady)
     // ------------------
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
+
         enableMyLocation()
         moveCameraToUserLocation()
-
         loadExistingMemories()
 
+        val passedLat = args.latitude
+        val passedLng = args.longitude
+
+        // Seçilen konum varsa kamerayı oraya taşı ve marker ekle
+        if (passedLat != null && passedLng != null) {
+            val targetLocation = LatLng(passedLat.toDouble(), passedLng.toDouble())
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(targetLocation, 16f))
+            map.addMarker(MarkerOptions().position(targetLocation).title("Seçilen Konum"))
+        }
+
+        // Harita uzun tıklama işlemi
         googleMap.setOnMapLongClickListener { latLng ->
             val currentMode = viewModel.selectedMode.value
+
             if (currentMode == MemoryAddMode.YERINDE_EKLE) {
-                val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-                if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                // Yerinde Ekle modunda sadece 50 metre içinde izin ver
+                if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) ==
+                    PackageManager.PERMISSION_GRANTED) {
+
+                    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
                     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                         if (location != null) {
                             val distance = FloatArray(1)
@@ -371,9 +431,10 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                                 latLng.latitude, latLng.longitude,
                                 distance
                             )
+
                             if (distance[0] <= 50f) {
                                 openAddMemoryDialog(latLng)
-                                viewModel.onMemoryAddedInPlace(latLng.latitude, latLng.longitude)
+                                viewModel.addMemory(latLng.latitude, latLng.longitude)
                                 Toast.makeText(requireContext(), "Rozet kazandınız! 🎉", Toast.LENGTH_SHORT).show()
                             } else {
                                 Toast.makeText(requireContext(), "Bu konumdan 50 metreden uzaksın, anı ekleyemezsin.", Toast.LENGTH_SHORT).show()
@@ -383,21 +444,21 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                         }
                     }
                 } else {
-                    // İzin yoksa izin istemeyi unutma
                     Toast.makeText(requireContext(), "Konum izni verilmedi.", Toast.LENGTH_SHORT).show()
+                    // Gerekirse burada izin isteme işlemi tetiklenebilir
                 }
             } else {
+                // Serbest ekleme modu
                 openAddMemoryDialog(latLng)
-                viewModel.onMemoryAdded() // Serbest modda konum göndermeye gerek yok
+                viewModel.onMemoryAdded()
             }
 
             // Geofence ekle
             val geofenceId = UUID.randomUUID().toString()
             addGeofence(latLng, geofenceId)
         }
-
-
     }
+
 
     // ------------------
     //  Yardımcı Fonksiyonlar
@@ -498,7 +559,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                         dialogEditText = null
 
                         // Burada rozet verme fonksiyonunu çağırıyoruz:
-                        viewModel.onMemoryAddedInPlace(latLng.latitude, latLng.longitude)
+                        viewModel.addMemory (latLng.latitude, latLng.longitude)
                     }
                 } else {
                     Toast.makeText(requireContext(), "Anı boş olamaz!", Toast.LENGTH_SHORT).show()
@@ -616,15 +677,20 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+
+
+
     override fun onResume() {
         super.onResume()
         binding.mapView.onResume()
     }
 
+
     override fun onPause() {
         binding.mapView.onPause()
         super.onPause()
     }
+    
 
     override fun onDestroyView() {
         binding.mapView.onDestroy()

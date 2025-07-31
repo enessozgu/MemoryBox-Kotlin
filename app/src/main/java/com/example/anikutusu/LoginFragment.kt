@@ -30,6 +30,18 @@ class LoginFragment : Fragment() {
 
         auth = FirebaseAuth.getInstance()
 
+
+
+
+
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        auth = FirebaseAuth.getInstance()
+
+
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
@@ -44,15 +56,6 @@ class LoginFragment : Fragment() {
             googleSignInLauncher.launch(signInIntent)
         }
 
-
-
-
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        auth = FirebaseAuth.getInstance()
 
         binding.loginButton.setOnClickListener {
             val email = binding.emailEditText.text.toString()
@@ -87,7 +90,7 @@ class LoginFragment : Fragment() {
                 .addOnCompleteListener { signInTask ->
                     if (signInTask.isSuccessful) {
                         Toast.makeText(requireContext(), "Google ile giriş başarılı", Toast.LENGTH_SHORT).show()
-                        findNavController().navigate(R.id.action_registerFragment_to_homeMapFragment)
+                        findNavController().navigate(R.id.action_loginFragment_to_homeMapFragment)
                     } else {
                         Toast.makeText(requireContext(), "Google ile giriş başarısız: ${signInTask.exception?.message}", Toast.LENGTH_LONG).show()
                     }

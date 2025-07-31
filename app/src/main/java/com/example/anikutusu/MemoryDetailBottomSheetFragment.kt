@@ -79,7 +79,7 @@
                     // Static Map or actual GoogleMapFragment eklersin burada
                 }
                 .addOnFailureListener {
-                    Toast.makeText(requireContext(), "Yer bilgisi alınamadı", Toast.LENGTH_SHORT).show()
+
                 }
         }
 
