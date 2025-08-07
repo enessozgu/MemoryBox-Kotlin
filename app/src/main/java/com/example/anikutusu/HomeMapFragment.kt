@@ -130,10 +130,10 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
-        // --- 2. ViewModel’i Başlat ---
+
         viewModel = ViewModelProvider(this)[MemoryAddViewModel::class.java]
 
-        // --- Rozetleri Gözleme: badge sayısını güncelle ---
+
         viewModel.badges.observe(viewLifecycleOwner) { badgesSet ->
             val badgeCount = badgesSet.size
             binding.textViewBadgeStatus.text = "Rozet: $badgeCount"
@@ -193,7 +193,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
         Log.d("AuthStatus", "currentUser: ${FirebaseAuth.getInstance().currentUser?.uid}")
 
-        // --- İzinleri İste ---
+
         locationAndAudioPermissionRequest.launch(
             arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
@@ -202,7 +202,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             )
         )
 
-        // --- Haritayı Başlat ---
+
         binding.mapView.onCreate(savedInstanceState)
         binding.mapView.getMapAsync(this)
         mapView = binding.mapView
@@ -215,16 +215,16 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
         mapView.getMapAsync { map ->
             googleMap = map
-            // Harita ayarları burada (örn. marker renkleri, zoom tercihleri vs.)
+
         }
 
-        // --- Places Autocomplete ---
+
         var autocomplete = childFragmentManager.findFragmentById(R.id.autocomplete_fragment_container) as? AutocompleteSupportFragment
         if (autocomplete == null) {
             autocomplete = AutocompleteSupportFragment.newInstance()
             childFragmentManager.beginTransaction()
                 .replace(R.id.autocomplete_fragment_container, autocomplete)
-                .commitNow()  // commitNow ile eşzamanlı işlem
+                .commitNow()
         }
 
         autocomplete.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
@@ -303,9 +303,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
 
 
-    // ------------------
-    //  Geofence Ekleme
-    // ------------------
+
     private fun addGeofence(latLng: LatLng, geofenceId: String) {
         if (!locationPermissionGranted) return
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -347,9 +345,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    // ------------------
-    //  Anı Detay Dialogu
-    // ------------------
+
     private fun showMemoryDetailDialog(documentId: String) {
         val db = FirebaseFirestore.getInstance()
         db.collection("memories").document(documentId).get()
@@ -394,9 +390,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
 
     val args: HomeMapFragmentArgs by navArgs()
-    // ------------------
-    //  Harita Hazır (OnMapReady)
-    // ------------------
+
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
 
@@ -407,19 +401,19 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         val passedLat = args.latitude
         val passedLng = args.longitude
 
-        // Seçilen konum varsa kamerayı oraya taşı ve marker ekle
+
         if (passedLat != null && passedLng != null) {
             val targetLocation = LatLng(passedLat.toDouble(), passedLng.toDouble())
             map.animateCamera(CameraUpdateFactory.newLatLngZoom(targetLocation, 16f))
             map.addMarker(MarkerOptions().position(targetLocation).title("Seçilen Konum"))
         }
 
-        // Harita uzun tıklama işlemi
+
         googleMap.setOnMapLongClickListener { latLng ->
             val currentMode = viewModel.selectedMode.value
 
             if (currentMode == MemoryAddMode.YERINDE_EKLE) {
-                // Yerinde Ekle modunda sadece 50 metre içinde izin ver
+
                 if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) ==
                     PackageManager.PERMISSION_GRANTED) {
 
@@ -446,24 +440,22 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                     }
                 } else {
                     Toast.makeText(requireContext(), "Location permission not granted.", Toast.LENGTH_SHORT).show()
-                    // Gerekirse burada izin isteme işlemi tetiklenebilir
+
                 }
             } else {
-                // Serbest ekleme modu
+
                 openAddMemoryDialog(latLng)
                 viewModel.onMemoryAdded()
             }
 
-            // Geofence ekle
+
             val geofenceId = UUID.randomUUID().toString()
             addGeofence(latLng, geofenceId)
         }
     }
 
 
-    // ------------------
-    //  Yardımcı Fonksiyonlar
-    // ------------------
+
     private fun enableMyLocation() {
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
             ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -559,7 +551,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                         dialogImageView = null
                         dialogEditText = null
 
-                        // Burada rozet verme fonksiyonunu çağırıyoruz:
+
                         viewModel.addMemory (latLng.latitude, latLng.longitude)
                     }
                 } else {

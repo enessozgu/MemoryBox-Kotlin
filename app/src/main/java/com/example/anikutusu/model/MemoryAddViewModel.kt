@@ -9,12 +9,16 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 
+// ViewModel responsible for handling memory add logic and badge system
 class MemoryAddViewModel : ViewModel() {
 
-    // 1. Mod seçimi
+    // --- 1. Memory Add Mode Selection ---
+
+    // Backing field for selected mode (default is SERBEST_EKLE)
     private val _selectedMode = MutableLiveData(MemoryAddMode.SERBEST_EKLE)
     val selectedMode: LiveData<MemoryAddMode> = _selectedMode
 
+    // Toggles between SERBEST_EKLE and YERINDE_EKLE modes
     fun toggleMode() {
         _selectedMode.value = when (_selectedMode.value) {
             MemoryAddMode.SERBEST_EKLE -> MemoryAddMode.YERINDE_EKLE
@@ -22,43 +26,45 @@ class MemoryAddViewModel : ViewModel() {
         }
     }
 
-    // --- Rozet Sistemi ---
+    // --- Badge System ---
 
     companion object {
+        // Badge keys used for Firestore and local UI
         const val ROZET_ILK_YERINDE = "badge_first_in_place"
         const val ROZET_GALATA_KULESI = "badge_galata_kulesi"
         const val ROZET_SULTANAHMET = "badge_sultanahmet"
 
-        // Galata Kulesi koordinatları ve yarıçapı
+        // Coordinates and radius for Galata Tower
         const val GALATA_KULESI_LAT = 41.0256
         const val GALATA_KULESI_LON = 28.9744
         const val GALATA_KULESI_RADIUS_METERS = 100f
 
-        // Sultanahmet koordinatları ve yarıçapı
+        // Coordinates and radius for Sultanahmet
         const val SULTANAHMET_LAT = 41.0056
         const val SULTANAHMET_LON = 28.9768
         const val SULTANAHMET_RADIUS_METERS = 100f
     }
 
+    // LiveData to hold the currently earned badges
     private val _badges = MutableLiveData<Set<String>>(emptySet())
     val badges: LiveData<Set<String>> = _badges
 
-    // Rozet ekleme fonksiyonu (Firestore ve local LiveData güncelleme)
+    // Adds a badge both to Firestore and to the local badge set
     private fun addBadge(badgeName: String) {
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
         val db = FirebaseFirestore.getInstance()
         val userBadgesRef = db.collection("users").document(uid)
 
-        // Firestore'da ilgili rozet alanını true yap
+        // Set the badge field to true in Firestore under "badges" map
         userBadgesRef.set(mapOf(
             "badges.$badgeName" to true
         ), SetOptions.merge())
 
-        // Local rozet setine ekle (yeni immutable set oluştur)
+        // Add the badge to local LiveData set (creates new immutable set)
         _badges.value = _badges.value?.plus(badgeName)
     }
 
-    // Galata Kulesi rozetini konuma göre ekle
+    // Check if user is near Galata Tower, and add the badge if so
     private fun addGalataKulesiBadgeIfNearby(userLat: Double, userLon: Double) {
         val userLocation = Location("").apply {
             latitude = userLat
@@ -75,7 +81,7 @@ class MemoryAddViewModel : ViewModel() {
         }
     }
 
-    // Sultanahmet rozetini konuma göre ekle
+    // Check if user is near Sultanahmet, and add the badge if so
     private fun addSultanAhmetBadgeIfNearby(userLat: Double, userLon: Double) {
         val userLocation = Location("").apply {
             latitude = userLat
@@ -92,24 +98,27 @@ class MemoryAddViewModel : ViewModel() {
         }
     }
 
-    // Anı eklendiğinde çağrılacak fonksiyon: sadece Yerinde Ekle modunda rozet ekle
+    // Called when a memory is added
+    // Only triggers badge checks in YERINDE_EKLE mode
     fun addMemory(latitude: Double, longitude: Double) {
         if (_selectedMode.value == MemoryAddMode.YERINDE_EKLE) {
-            // Yerinde ekle modunda, konuma göre rozetleri ekle
+            // Check location-based badges
             addGalataKulesiBadgeIfNearby(latitude, longitude)
             addSultanAhmetBadgeIfNearby(latitude, longitude)
-            addBadge(ROZET_ILK_YERINDE) // Yerinde ekle ilk rozet
 
-            // Burada başka rozet kontrolleri de yapabilirsin
+            // Always give the first in-place badge
+            addBadge(ROZET_ILK_YERINDE)
+
+            // Additional badge checks can be added here
         } else {
-            // Serbest mod için rozet yok veya farklı işlem yapılabilir
+            // No badges for free mode
             onMemoryAdded()
         }
     }
 
-    // Serbest modda anı eklendiğinde yapılacak işlemler (şimdilik boş)
-     fun onMemoryAdded() {
-        // Serbest modda rozet eklenmeyecek
+    // Optional logic when memory is added in SERBEST_EKLE mode
+    fun onMemoryAdded() {
+        // Currently does nothing for free add mode
     }
 
 }

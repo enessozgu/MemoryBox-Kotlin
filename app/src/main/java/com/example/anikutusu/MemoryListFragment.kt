@@ -18,15 +18,15 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+// Fragment that displays a list of user's saved memories
 class MemoryListFragment : Fragment() {
 
-    private lateinit var googleMap: GoogleMap
-
-
+    private lateinit var googleMap: GoogleMap // Not used here, but may be used later
 
     private var _binding: FragmentMemoryListBinding? = null
     private val binding get() = _binding!!
 
+    // Adapter with click listener to open memory detail bottom sheet
     private val adapter = MemoryAdapter { memoryItem ->
         val fragment = MemoryDetailBottomSheetFragment()
         fragment.arguments = Bundle().apply {
@@ -41,6 +41,7 @@ class MemoryListFragment : Fragment() {
         fragment.show(parentFragmentManager, fragment.tag)
     }
 
+    // Inflate the layout using ViewBinding
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -50,25 +51,24 @@ class MemoryListFragment : Fragment() {
         return binding.root
     }
 
-
-
+    // Called after the view is created
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Set up RecyclerView with vertical list layout
         binding.recyclerViewMemories.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerViewMemories.adapter = adapter
 
+        // Load memory data from Firestore
         loadMemories()
 
-
+        // Navigation drawer item selection handler
         binding.homeNavigationView.setNavigationItemSelectedListener {
             showDrawerMenuItemAction(it.itemId)
             true
         }
 
-
-
-
+        // Set up toolbar and navigation drawer toggle
         val toolbar = binding.toolbar
         toolbar.title = "Anılarım"
 
@@ -76,7 +76,6 @@ class MemoryListFragment : Fragment() {
         activity.setSupportActionBar(toolbar)
 
         val drawerLayout = binding.drawerLayout
-
         val toggle = ActionBarDrawerToggle(
             activity,
             drawerLayout,
@@ -86,58 +85,35 @@ class MemoryListFragment : Fragment() {
         )
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
-
-
-
-
-
-
-
-
     }
 
-
-
-
-
-
-
+    // Handles what happens when a drawer item is selected
     private fun showDrawerMenuItemAction(menuItemId: Int) {
         when (menuItemId) {
-
             R.id.nav_map -> {
-
                 findNavController().navigate(R.id.action_memoryListFragment_to_homeMapFragment)
             }
-
-
             R.id.nav_badges -> {
                 FirebaseAuth.getInstance().signOut()
                 Toast.makeText(requireContext(), "Exit made", Toast.LENGTH_SHORT).show()
                 findNavController().navigate(R.id.action_memoryListFragment_to_registerFragment)
             }
-
             R.id.nav_memories -> {
                 Toast.makeText(requireContext(), "You're already here 👀", Toast.LENGTH_SHORT).show()
             }
-
             R.id.nav_rozet -> {
                 findNavController().navigate(R.id.action_memoryListFragment_to_bonusgps)
             }
-
             R.id.nav_settings -> {
-
+                // Future settings action
             }
         }
     }
 
-
-
-
-
-
+    // Loads memory items from Firestore and updates the RecyclerView
     private fun loadMemories() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
         FirebaseFirestore.getInstance().collection("memories")
             .whereEqualTo("userId", userId)
             .get()
@@ -160,6 +136,7 @@ class MemoryListFragment : Fragment() {
             }
     }
 
+    // Clear binding reference to prevent memory leaks
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
