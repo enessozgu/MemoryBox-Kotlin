@@ -48,8 +48,8 @@ class LoginFragment : Fragment() {
         }
 
         // Handle email/password login button click
-        binding.loginButton.setOnClickListener {
-            val email = binding.emailEditText.text.toString()
+        binding.signin.setOnClickListener {
+            val email = binding.mailEditText.text.toString()
             val password = binding.passwordEditText.text.toString()
 
             if (email.isNotEmpty() && password.isNotEmpty()) {
