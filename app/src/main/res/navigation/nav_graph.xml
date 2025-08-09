@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/forgotPassword">
+    app:startDestination="@id/homeMapFragment">
 
     <fragment
         android:id="@+id/registerFragment"
@@ -27,6 +27,9 @@
         <action
             android:id="@+id/action_loginFragment_to_registerFragment"
             app:destination="@id/registerFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_forgotPassword"
+            app:destination="@id/forgotPassword" />
     </fragment>
 
     <fragment
@@ -108,6 +111,10 @@
         android:id="@+id/forgotPassword"
         android:name="com.example.anikutusu.ForgotPassword"
         android:label="fragment_forgot_password"
-        tools:layout="@layout/fragment_forgot_password" />
+        tools:layout="@layout/fragment_forgot_password" >
+        <action
+            android:id="@+id/action_forgotPassword_to_registerFragment"
+            app:destination="@id/registerFragment" />
+    </fragment>
 
 </navigation>

@@ -5,24 +5,29 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
 import com.example.anikutusu.databinding.FragmentLoginBinding
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.GoogleAuthProvider
 
-// Fragment responsible for handling user login with Email/Password and Google Sign-In
+// Fragment responsible for handling user login via Email/Password and Google Sign-In
 class LoginFragment : Fragment() {
 
-    private lateinit var binding: FragmentLoginBinding               // View binding for accessing UI elements
-    private lateinit var auth: FirebaseAuth                          // Firebase authentication instance
-    private lateinit var googleSignInClient: GoogleSignInClient      // Google Sign-In client
+    // View binding for accessing UI elements
+    private lateinit var binding: FragmentLoginBinding
+    // Firebase Authentication instance
+    private lateinit var auth: FirebaseAuth
+    // Google Sign-In client
+    private lateinit var googleSignInClient: GoogleSignInClient
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        // Inflate the layout using ViewBinding
         binding = FragmentLoginBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -30,52 +35,71 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize Firebase Auth
+        // Initialize Firebase Authentication
         auth = FirebaseAuth.getInstance()
 
-        // Configure Google Sign-In
+        // Configure Google Sign-In options (ID token + email request)
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
 
+        // Create Google Sign-In client with above configuration
         googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso)
 
         // Handle Google Sign-In button click
         binding.googleSignInButton.setOnClickListener {
             val signInIntent = googleSignInClient.signInIntent
-            googleSignInLauncher.launch(signInIntent)
+            googleSignInLauncher.launch(signInIntent) // Launch Google Sign-In flow
         }
 
-        binding.forgotpassword.setOnClickListener{
-
+        // Navigate to Forgot Password screen
+        binding.forgotpassword.setOnClickListener {
+            Navigation.findNavController(it).navigate(R.id.action_loginFragment_to_forgotPassword)
         }
 
-        // Handle email/password login button click
+        // Navigate to Registration screen
+        binding.textViewGoToRegister.setOnClickListener {
+            Navigation.findNavController(it).navigate(R.id.action_loginFragment_to_registerFragment)
+        }
+
+        // Handle Email/Password login button click
         binding.signin.setOnClickListener {
-            val email = binding.mailEditText.text.toString()
-            val password = binding.passwordEditText.text.toString()
+            val email = binding.mailEditText.text.toString().trim()
+            val password = binding.passwordEditText.text.toString().trim()
 
-            if (email.isNotEmpty() && password.isNotEmpty()) {
-                // Attempt to sign in using Firebase Email/Password
-                auth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            val user = auth.currentUser
-                            if (user != null && user.isEmailVerified) {
-                                Toast.makeText(requireContext(), "Login successful!", Toast.LENGTH_SHORT).show()
-                                findNavController().navigate(R.id.action_loginFragment_to_homeMapFragment)
-                            } else {
-                                Toast.makeText(requireContext(), "Please verify your email before logging in.", Toast.LENGTH_LONG).show()
-                                auth.signOut()
-                            }
-                        } else {
-                            Toast.makeText(requireContext(), "Login failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
-                        }
-                    }
-            } else {
-                Toast.makeText(requireContext(), "Email and password cannot be empty!", Toast.LENGTH_SHORT).show()
+            // Validate input fields
+            if (email.isEmpty() || password.isEmpty()) {
+                Snackbar.make(binding.root, "Email and password cannot be empty!", Snackbar.LENGTH_LONG).show()
+                return@setOnClickListener
             }
+
+            // Disable sign-in button during authentication process
+            binding.signin.isEnabled = false
+
+            // Attempt Firebase Email/Password authentication
+            auth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
+                    binding.signin.isEnabled = true // Re-enable button
+                    if (task.isSuccessful) {
+                        val user = auth.currentUser
+                        // Check if email is verified before allowing login
+                        if (user != null && user.isEmailVerified) {
+                            Snackbar.make(binding.root, "Login successful!", Snackbar.LENGTH_LONG).show()
+                            findNavController().navigate(R.id.action_loginFragment_to_homeMapFragment)
+                        } else {
+                            Snackbar.make(binding.root, "Please verify your email before logging in.", Snackbar.LENGTH_LONG).show()
+                            auth.signOut()
+                        }
+                    } else {
+                        // Display error message from Firebase
+                        Snackbar.make(
+                            binding.root,
+                            "Login failed: ${task.exception?.message ?: "Unknown error"}",
+                            Snackbar.LENGTH_LONG
+                        ).show()
+                    }
+                }
         }
     }
 
@@ -86,18 +110,23 @@ class LoginFragment : Fragment() {
             val account = task.result
             val credential = GoogleAuthProvider.getCredential(account.idToken, null)
 
-            // Sign in with Firebase using Google credentials
+            // Authenticate with Firebase using Google credentials
             auth.signInWithCredential(credential)
                 .addOnCompleteListener { signInTask ->
                     if (signInTask.isSuccessful) {
-                        Toast.makeText(requireContext(), "Signed in with Google!", Toast.LENGTH_SHORT).show()
+                        Snackbar.make(binding.root, "Signed in with Google!", Snackbar.LENGTH_LONG).show()
                         findNavController().navigate(R.id.action_loginFragment_to_homeMapFragment)
                     } else {
-                        Toast.makeText(requireContext(), "Google sign-in failed: ${signInTask.exception?.message}", Toast.LENGTH_LONG).show()
+                        Snackbar.make(
+                            binding.root,
+                            "Google sign-in failed: ${signInTask.exception?.message ?: "Unknown error"}",
+                            Snackbar.LENGTH_LONG
+                        ).show()
                     }
                 }
         } else {
-            Toast.makeText(requireContext(), "Google sign-in was cancelled", Toast.LENGTH_SHORT).show()
+            // User cancelled Google Sign-In
+            Snackbar.make(binding.root, "Google sign-in was cancelled", Snackbar.LENGTH_LONG).show()
         }
     }
 }
