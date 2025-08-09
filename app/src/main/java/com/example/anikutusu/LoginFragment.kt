@@ -47,6 +47,10 @@ class LoginFragment : Fragment() {
             googleSignInLauncher.launch(signInIntent)
         }
 
+        binding.forgotpassword.setOnClickListener{
+
+        }
+
         // Handle email/password login button click
         binding.signin.setOnClickListener {
             val email = binding.mailEditText.text.toString()

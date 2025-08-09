@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     android:background="#F8F3F3"
-    android:padding="24dp"
     tools:context=".RegisterFragment">
 
     <TextView
@@ -16,6 +15,7 @@
         android:textColor="@color/black"
         android:textSize="20dp"
         android:textStyle="bold"
+        android:layout_marginTop="20dp"
         app:layout_constraintStart_toStartOf="@id/usernameEditText"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -153,13 +153,13 @@
         android:layout_height="wrap_content"
         android:text="Do you have an account? Log in"
         android:textColor="#1976D2"
+        android:padding="10dp"
         android:textSize="15sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:fontFamily="sans-serif"
-        android:layout_marginTop="50dp"
-        android:layout_marginBottom="10dp"/>
+        android:layout_marginBottom="30dp"/>
     <Button
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
