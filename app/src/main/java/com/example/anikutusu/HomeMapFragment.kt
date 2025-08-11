@@ -675,15 +675,19 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
     override fun onResume() {
         super.onResume()
-        binding.mapView.onResume()
+        requireActivity()
+            .findViewById<androidx.viewpager2.widget.ViewPager2>(R.id.vp)
+            .isUserInputEnabled = false
     }
-
 
     override fun onPause() {
-        binding.mapView.onPause()
+        requireActivity()
+            .findViewById<androidx.viewpager2.widget.ViewPager2>(R.id.vp)
+            .isUserInputEnabled = true
         super.onPause()
     }
-    
+
+
 
     override fun onDestroyView() {
         binding.mapView.onDestroy()
