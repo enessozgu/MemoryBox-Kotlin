@@ -2,6 +2,7 @@ package com.example.anikutusu.model
 
 // Data class representing a memory item added by the user
 data class MemoryItem(
+    val id: String? = null,
     val userId: String = "",        // ID of the user who created the memory
     val text: String = "",          // Text content of the memory (description or note)
     val photoUrl: String? = null,   // Optional URL of the attached photo

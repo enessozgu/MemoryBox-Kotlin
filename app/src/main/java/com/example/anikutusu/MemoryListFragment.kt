@@ -120,6 +120,7 @@ class MemoryListFragment : Fragment() {
             .addOnSuccessListener { result ->
                 val list = result.map { doc ->
                     MemoryItem(
+                        id = doc.id, // 🔹 Burada ekliyoruz
                         text = doc.getString("text") ?: "",
                         photoUrl = doc.getString("photoUrl"),
                         audioUrl = doc.getString("audioUrl"),
@@ -135,6 +136,7 @@ class MemoryListFragment : Fragment() {
                 Toast.makeText(requireContext(), "Anılar yüklenemedi", Toast.LENGTH_SHORT).show()
             }
     }
+
 
     // Clear binding reference to prevent memory leaks
     override fun onDestroyView() {
