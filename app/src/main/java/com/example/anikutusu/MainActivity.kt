@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
 
         val currentDestination = navController.currentDestination?.id
 
-        if (auth.currentUser != null) {
+      /*  if (auth.currentUser != null) {
             // If user is already logged in, navigate to HomeMapFragment
             if (currentDestination != R.id.homeMapFragment) {
                 navController.navigate(R.id.homeMapFragment)
@@ -38,6 +38,6 @@ class MainActivity : AppCompatActivity() {
             if (currentDestination != R.id.registerFragment) {
                 navController.navigate(R.id.registerFragment)
             }
-        }
+        }*/
     }
 }
