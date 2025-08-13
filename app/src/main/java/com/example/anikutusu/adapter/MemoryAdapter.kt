@@ -16,6 +16,7 @@ import com.bumptech.glide.Glide
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.anikutusu.R
 import com.example.anikutusu.model.MemoryItem
+import com.github.chrisbanes.photoview.PhotoView
 
 class MemoryAdapter(
     private val onItemClick: (MemoryItem) -> Unit
@@ -43,7 +44,7 @@ class MemoryAdapter(
 
         holder.text.text = memory.text
 
-        // Fotoğraf zoom dialog
+       // Fotoğraf zoom dialog
         holder.image.setOnClickListener {
             val adapterPos = holder.adapterPosition
             if (adapterPos == RecyclerView.NO_POSITION) return@setOnClickListener
@@ -51,23 +52,21 @@ class MemoryAdapter(
             memoryList.getOrNull(adapterPos)?.photoUrl?.let { url ->
                 val dialogView = LayoutInflater.from(holder.itemView.context)
                     .inflate(R.layout.dialog_fullscreen_image, null)
-                val zoomImageView = dialogView.findViewById<ImageView>(R.id.zoomImageView)
-                Glide.with(holder.itemView.context).load(url).into(zoomImageView)
 
-                val dialog = AlertDialog.Builder(holder.itemView.context)
+                // Artık PhotoView kullanıyoruz.bu sayede zoom yapapbilcez.
+                val zoomImageView = dialogView.findViewById<PhotoView>(R.id.zoomImageView)
+                Glide.with(holder.itemView.context)
+                    .load(url)
+                    .into(zoomImageView)
+
+                val dialog = AlertDialog.Builder(holder.itemView.context, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
                     .setView(dialogView)
                     .create()
-
-                dialog.window?.setLayout(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                )
-                dialog.window?.setBackgroundDrawable(ColorDrawable(Color.BLACK))
-
 
                 dialog.show()
             }
         }
+
 
         // Fotoğraf varsa göster, yoksa gizle
         if (memory.photoUrl != null) {

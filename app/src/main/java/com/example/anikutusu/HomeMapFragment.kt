@@ -257,7 +257,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             R.id.nav_badges -> {
                 FirebaseAuth.getInstance().signOut()
                 Toast.makeText(requireContext(), "Exit made", Toast.LENGTH_SHORT).show()
-                findNavController().navigate(R.id.action_homeMapFragment_to_registerFragment)
+                findNavController().navigate(R.id.action_homeMapFragment_to_bonusgps)
             }
 
             R.id.nav_memories -> {
@@ -266,7 +266,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             }
 
             R.id.nav_rozet -> {
-                findNavController().navigate(R.id.action_homeMapFragment_to_bonusgps)
+                Toast.makeText(requireContext(), "rozet", Toast.LENGTH_SHORT).show()
 
             }
 

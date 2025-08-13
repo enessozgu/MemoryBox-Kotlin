@@ -63,6 +63,8 @@ dependencies {
 
     implementation ("com.google.firebase:firebase-auth:22.3.0")
 
+    implementation("io.github.chrisbanes:PhotoView:2.3.0")
+
 
     implementation ("com.github.bumptech.glide:glide:4.15.1")
     implementation(libs.firebase.storage)

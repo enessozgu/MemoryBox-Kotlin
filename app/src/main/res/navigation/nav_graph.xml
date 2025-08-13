@@ -129,6 +129,9 @@
         <action
             android:id="@+id/action_homePageFragment_to_profileFragment"
             app:destination="@id/profileFragment" />
+        <action
+            android:id="@+id/action_homePageFragment_to_memoryListFragment"
+            app:destination="@id/memoryListFragment" />
     </fragment>
 
 </navigation>
