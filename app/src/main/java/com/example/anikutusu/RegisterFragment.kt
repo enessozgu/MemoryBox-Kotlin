@@ -14,6 +14,7 @@ import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.example.anikutusu.databinding.FragmentRegisterBinding
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.database.FirebaseDatabase
 
 // Fragment responsible for handling user registration via Email/Password and Google Sign-In
 class RegisterFragment : Fragment() {
@@ -81,6 +82,10 @@ class RegisterFragment : Fragment() {
                                             "Registration successful! Please verify your email.",
                                             Snackbar.LENGTH_LONG
                                         ).show()
+                                        val database=FirebaseDatabase.getInstance()
+                                        val userList=database.getReference("Users")
+                                        val user=UserDataFormat(binding.usernameEditText.text.toString(),binding.mailEditText.text.toString(),0)
+                                        userList.child("${binding.usernameEditText.text}"+"Data").setValue(user)
                                         auth.signOut()
                                         findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
                                     } else {
