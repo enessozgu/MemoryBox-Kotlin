@@ -141,6 +141,14 @@
         <action
             android:id="@+id/action_homePageFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
+        <action
+            android:id="@+id/action_homePageFragment_to_otherProfileFragment"
+            app:destination="@id/otherProfileFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/otherProfileFragment"
+        android:name="com.example.anikutusu.OtherProfileFragment"
+        android:label="fragment_other_profile"
+        tools:layout="@layout/fragment_other_profile" />
 
 </navigation>

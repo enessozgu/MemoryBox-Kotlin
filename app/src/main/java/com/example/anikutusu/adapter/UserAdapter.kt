@@ -1,12 +1,14 @@
 package com.example.anikutusu.adapter
 
 import android.content.Context
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.navigation.Navigation
 import androidx.recyclerview.widget.RecyclerView
 import com.example.anikutusu.R
 import com.example.anikutusu.UserDataClass
@@ -32,8 +34,14 @@ class UserAdapter(private val mContext: Context, private var userList: List<User
         holder.username.text = item.username
 
 
-        holder.cl.setOnClickListener {
+        holder.cl.setOnClickListener {v->
+            val bundle=Bundle().apply {
+                putString("username",item.username)
+                putString("imgLogo",item.photoImage.toString())
+                putString("email",item.email)
+            }
 
+            Navigation.findNavController(v).navigate(R.id.action_homePageFragment_to_otherProfileFragment,bundle)
         }
     }
 
