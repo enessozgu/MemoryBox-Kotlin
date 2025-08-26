@@ -50,4 +50,14 @@ class OtherProfileFragment : Fragment() {
 
         return binding.root
     }
+
+
+
+
+
+
+
+
+
+
 }

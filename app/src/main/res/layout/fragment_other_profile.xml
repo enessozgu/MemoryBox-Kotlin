@@ -162,7 +162,7 @@
         android:textColor="@color/black"
         android:textStyle="bold"
         android:textSize="15dp"/>
-    <TextView
+    <Button
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toEndOf="@id/followButton"

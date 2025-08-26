@@ -600,7 +600,15 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         recordedAudioFilePath = audioFilePath
     }
 
-    private suspend fun saveMemory(latLng: LatLng, text: String, photoUri: Uri?, audioFilePath: String?) {
+
+
+
+    private suspend fun saveMemory(
+        latLng: LatLng,
+        text: String,
+        photoUri: Uri?,
+        audioFilePath: String?
+    ) {
         val user = FirebaseAuth.getInstance().currentUser
         if (user == null) {
             Log.e("FirestoreDebug", "Kullanıcı null, Firestore yazılamaz.")
@@ -610,14 +618,30 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
         try {
             val db = FirebaseFirestore.getInstance()
-            val userId = user.uid
             val storageRef = Firebase.storage.reference
+
+            // 🔹 Kullanıcı adı ile path oluştur
+            val username = user.displayName ?: user.email?.substringBefore("@") ?: user.uid
+            val userFolder = "${username}Data"
+
+            val countSnapshot = db.collection("memories")
+                .whereEqualTo("username", username)
+                .get()
+                .await()
+
+
+            val memoryCount = countSnapshot.size()  // Kaç anı kaydedilmiş
+            val nextPhotoIndex = memoryCount + 1
+            val nextAudioIndex = memoryCount + 1
+
+            val photoName = "${username}Photo$nextPhotoIndex.jpg"
+            val audioName = "${username}Audio$nextAudioIndex.3gp"
 
             var photoUrl: String? = null
             photoUri?.let {
                 try {
                     Log.d("UPLOAD", "Fotoğraf yükleniyor: $it")
-                    val photoRef = storageRef.child("images/${UUID.randomUUID()}.jpg")
+                    val photoRef = storageRef.child("users/$userFolder/images/$photoName")
                     photoRef.putFile(it).await()
                     photoUrl = photoRef.downloadUrl.await().toString()
                     Log.d("UPLOAD", "Fotoğraf yüklendi: $photoUrl")
@@ -629,11 +653,10 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             var audioUrl: String? = null
             audioFilePath?.let {
                 val audioFile = File(it)
-                Log.d("UPLOAD", "Ses dosyası yolu: $audioFilePath")
                 if (audioFile.exists()) {
                     try {
-                        Log.d("UPLOAD", "Ses dosyası bulundu, yükleniyor.")
-                        val audioRef = storageRef.child("audio/${UUID.randomUUID()}.3gp")
+                        Log.d("UPLOAD", "Ses dosyası yükleniyor: $it")
+                        val audioRef = storageRef.child("users/$userFolder/audio/$audioName")
                         audioRef.putFile(Uri.fromFile(audioFile)).await()
                         audioUrl = audioRef.downloadUrl.await().toString()
                         Log.d("UPLOAD", "Ses dosyası yüklendi: $audioUrl")
@@ -646,7 +669,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             }
 
             val memoryData = hashMapOf(
-                "userId" to userId,
+                "username" to username,
                 "latitude" to latLng.latitude,
                 "longitude" to latLng.longitude,
                 "text" to text,
@@ -654,7 +677,6 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                 "audioUrl" to audioUrl,
                 "timestamp" to System.currentTimeMillis()
             )
-
 
             val documentRef = db.collection("memories").add(memoryData).await()
             Toast.makeText(requireContext(), "Anı kaydedildi!", Toast.LENGTH_SHORT).show()
@@ -669,6 +691,8 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             Toast.makeText(requireContext(), "Hata oluştu: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
         }
     }
+
+
 
 
 
