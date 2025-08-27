@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import com.example.anikutusu.databinding.FragmentOtherProfileBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
@@ -49,35 +48,6 @@ class OtherProfileFragment : Fragment() {
             override fun onCancelled(err: DatabaseError) { Log.e("followingRef", err.message) }
         })
 
-
-
-
-        binding.RozetButton.setOnClickListener {
-            findNavController().navigate(R.id.badgeFragment)
-        }
-
-
-
-
-
         return binding.root
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

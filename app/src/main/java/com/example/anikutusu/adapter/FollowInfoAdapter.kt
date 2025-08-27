@@ -13,10 +13,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.anikutusu.R
 import com.example.anikutusu.UserDataClass
 
-class UserAdapter(private val mContext: Context, private var userList: List<UserDataClass>) : RecyclerView.Adapter<UserAdapter.MyViewHolder>() {
-
+class FollowInfoAdapter(private val mContext:Context,private val userList:List<UserDataClass>) : RecyclerView.Adapter<FollowInfoAdapter.MyViewHolder>(){
     inner class MyViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val cl: ConstraintLayout = view.findViewById(R.id.cl)
+        val cl: ConstraintLayout = view.findViewById(R.id.cl2)
         val imgLogo: ImageView = view.findViewById(R.id.imgLogo)
         val username: TextView = view.findViewById(R.id.username)
     }
@@ -24,7 +23,7 @@ class UserAdapter(private val mContext: Context, private var userList: List<User
     override fun getItemCount(): Int = userList.size
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        val design = LayoutInflater.from(mContext).inflate(R.layout.add_user_cardview, parent, false)
+        val design = LayoutInflater.from(mContext).inflate(R.layout.cardview, parent, false)
         return MyViewHolder(design)
     }
 
@@ -35,17 +34,15 @@ class UserAdapter(private val mContext: Context, private var userList: List<User
 
 
         holder.cl.setOnClickListener {v->
-            val bundle=Bundle().apply {
+            val bundle= Bundle().apply {
                 putString("username",item.username)
                 putString("imgLogo",item.photoImage.toString())
                 putString("email",item.email)
             }
 
-            Navigation.findNavController(v).navigate(R.id.action_homePageFragment_to_otherProfileFragment,bundle)
+            Navigation.findNavController(v).navigate(R.id.action_global_otherProfileFragment,bundle)
+
         }
 
     }
-
-
-
 }

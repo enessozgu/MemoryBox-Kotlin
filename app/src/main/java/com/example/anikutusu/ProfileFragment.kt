@@ -44,12 +44,6 @@ class ProfileFragment : Fragment() {
             .addOnFailureListener {
                 binding.imgProfile.setImageResource(android.R.drawable.ic_menu_report_image)
             }
-
-
-
-
-
-
     }
 
     override fun onDestroyView() {
