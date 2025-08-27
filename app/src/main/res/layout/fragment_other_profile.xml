@@ -158,7 +158,7 @@
         app:layout_constraintTop_toBottomOf="@id/followednumberstext"
         android:background="@drawable/textdrawable"
         android:padding="15dp"
-        app:layout_constraintEnd_toStartOf="@id/messageButton"
+        app:layout_constraintEnd_toStartOf="@id/RozetButton"
         android:textColor="@color/black"
         android:textStyle="bold"
         android:textSize="15dp"/>
@@ -166,7 +166,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toEndOf="@id/followButton"
-        android:id="@+id/messageButton"
+        android:id="@+id/RozetButton"
         android:text="Başarımlar"
         android:layout_marginTop="10dp"
         android:gravity="center"

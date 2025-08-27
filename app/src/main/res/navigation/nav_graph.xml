@@ -15,6 +15,9 @@
         <action
             android:id="@+id/action_registerFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
+        <action
+            android:id="@+id/action_registerFragment_to_homePageFragment"
+            app:destination="@id/homePageFragment" />
     </fragment>
 
     <fragment
@@ -60,6 +63,9 @@
         <action
             android:id="@+id/action_homeMapFragment_to_bonusgps"
             app:destination="@id/bonusgps" />
+        <action
+            android:id="@+id/action_homeMapFragment_to_badgeFragment"
+            app:destination="@id/badgeFragment" />
     </fragment>
 
     <fragment
@@ -149,6 +155,16 @@
         android:id="@+id/otherProfileFragment"
         android:name="com.example.anikutusu.OtherProfileFragment"
         android:label="fragment_other_profile"
-        tools:layout="@layout/fragment_other_profile" />
+        tools:layout="@layout/fragment_other_profile" >
+        <action
+            android:id="@+id/action_otherProfileFragment_to_badgeFragment"
+            app:destination="@id/badgeFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/badgeFragment"
+        android:name="com.example.anikutusu.ui.badges.BadgeFragment"
+        android:label="Rozetler"
+        tools:layout="@layout/fragment_badge" />
+
 
 </navigation>

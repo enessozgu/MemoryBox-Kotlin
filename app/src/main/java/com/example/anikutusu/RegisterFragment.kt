@@ -143,7 +143,7 @@ class RegisterFragment : Fragment() {
                                 "Signed in with Google!",
                                 Snackbar.LENGTH_SHORT
                             ).show()
-                            findNavController().navigate(R.id.action_registerFragment_to_homeMapFragment)
+                            findNavController().navigate(R.id.action_registerFragment_to_homePageFragment)
                         } else {
                             Snackbar.make(
                                 requireActivity().findViewById(android.R.id.content),

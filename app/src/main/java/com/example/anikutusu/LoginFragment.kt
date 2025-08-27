@@ -127,13 +127,13 @@ class LoginFragment : Fragment() {
                     val email = auth.currentUser?.email ?: account.email
                     if (email.isNullOrBlank()) {
                         snack("Signed in with Google!")
-                        findNavController().navigate(R.id.action_loginFragment_to_homeMapFragment)
+                        findNavController().navigate(R.id.action_loginFragment_to_homePageFragment)
                         return@addOnCompleteListener
                     }
 
                     setMailApprovalByEmail(email) {
                         snack("Signed in with Google!")
-                        findNavController().navigate(R.id.action_loginFragment_to_homeMapFragment)
+                        findNavController().navigate(R.id.action_loginFragment_to_homePageFragment)
                     }
                 }
         }
