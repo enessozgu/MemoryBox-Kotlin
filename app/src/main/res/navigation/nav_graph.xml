@@ -5,6 +5,16 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/registerFragment">
 
+    <!-- 🔗 GLOBAL ACTION: her yerden FollowInfo'ya gitmek için -->
+    <action
+        android:id="@+id/action_global_followInfoFragment"
+        app:destination="@id/followInfoFragment" />
+    <action
+        android:id="@+id/action_global_otherProfileFragment"
+        app:destination="@id/otherProfileFragment" />
+
+
+    <!-- Register -->
     <fragment
         android:id="@+id/registerFragment"
         android:name="com.example.anikutusu.RegisterFragment"
@@ -17,6 +27,7 @@
             app:destination="@id/loginFragment" />
     </fragment>
 
+    <!-- Login -->
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.example.anikutusu.LoginFragment"
@@ -35,6 +46,7 @@
             app:destination="@id/homePageFragment" />
     </fragment>
 
+    <!-- Home Map -->
     <fragment
         android:id="@+id/homeMapFragment"
         android:name="com.example.anikutusu.HomeMapFragment"
@@ -62,6 +74,7 @@
             app:destination="@id/bonusgps" />
     </fragment>
 
+    <!-- Memory List -->
     <fragment
         android:id="@+id/memoryListFragment"
         android:name="com.example.anikutusu.MemoryListFragment"
@@ -78,6 +91,7 @@
             app:destination="@id/bonusgps" />
     </fragment>
 
+    <!-- Bonus GPS -->
     <fragment
         android:id="@+id/bonusgps"
         android:name="com.example.anikutusu.BonusGps"
@@ -105,11 +119,15 @@
                 app:argType="float" />
         </action>
     </fragment>
+
+    <!-- Test -->
     <fragment
         android:id="@+id/testFragment"
         android:name="com.example.anikutusu.TestFragment"
         android:label="fragment_test"
         tools:layout="@layout/fragment_test" />
+
+    <!-- Forgot Password -->
     <fragment
         android:id="@+id/forgotPassword"
         android:name="com.example.anikutusu.ForgotPassword"
@@ -119,11 +137,19 @@
             android:id="@+id/action_forgotPassword_to_registerFragment"
             app:destination="@id/registerFragment" />
     </fragment>
+
+    <!-- Profile -->
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.example.anikutusu.ProfileFragment"
         android:label="fragment_profile"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile" >
+        <action
+            android:id="@+id/action_profileFragment_to_followInfoFragment"
+            app:destination="@id/followInfoFragment" />
+    </fragment>
+
+    <!-- Home Page (tab/ana sayfa) -->
     <fragment
         android:id="@+id/homePageFragment"
         android:name="com.example.anikutusu.HomePageFragment"
@@ -144,11 +170,26 @@
         <action
             android:id="@+id/action_homePageFragment_to_otherProfileFragment"
             app:destination="@id/otherProfileFragment" />
+        <action
+            android:id="@+id/action_homePageFragment_to_followInfoFragment"
+            app:destination="@id/followInfoFragment" />
     </fragment>
+
+    <!-- Other Profile -->
     <fragment
         android:id="@+id/otherProfileFragment"
         android:name="com.example.anikutusu.OtherProfileFragment"
         android:label="fragment_other_profile"
-        tools:layout="@layout/fragment_other_profile" />
+        tools:layout="@layout/fragment_other_profile" >
+        <action
+            android:id="@+id/action_otherProfileFragment_to_followInfoFragment"
+            app:destination="@id/followInfoFragment" />
+    </fragment>
 
+    <!-- Follow Info -->
+    <fragment
+        android:id="@+id/followInfoFragment"
+        android:name="com.example.anikutusu.FollowInfoFragment"
+        android:label="fragment_follow_info"
+        tools:layout="@layout/fragment_follow_info" />
 </navigation>

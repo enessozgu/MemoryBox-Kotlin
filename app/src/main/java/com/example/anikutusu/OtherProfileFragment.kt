@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
+import androidx.navigation.Navigation
 import com.example.anikutusu.databinding.FragmentOtherProfileBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
@@ -47,6 +48,27 @@ class OtherProfileFragment : Fragment() {
             override fun onDataChange(snap: DataSnapshot) { binding.followednumbers.text = snap.childrenCount.toString() }
             override fun onCancelled(err: DatabaseError) { Log.e("followingRef", err.message) }
         })
+
+        binding.followednumbers.setOnClickListener{
+
+            val bundle=Bundle().apply {
+                putString("followersCount",binding.followersnumbers.text.toString())
+                putString("followingCount",binding.followednumbers.text.toString())
+                putString("username",binding.userName.text.toString())
+            }
+
+            Navigation.findNavController(it).navigate(R.id.action_otherProfileFragment_to_followInfoFragment,bundle)
+        }
+        binding.followersnumbers.setOnClickListener{
+
+            val bundle=Bundle().apply {
+                putString("followersCount",binding.followersnumbers.text.toString())
+                putString("followingCount",binding.followednumbers.text.toString())
+                putString("username",binding.userName.text.toString())
+            }
+
+            Navigation.findNavController(it).navigate(R.id.action_otherProfileFragment_to_followInfoFragment,bundle)
+        }
 
         return binding.root
     }
