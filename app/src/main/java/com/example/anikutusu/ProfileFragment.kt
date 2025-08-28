@@ -56,7 +56,7 @@ class ProfileFragment : Fragment() {
                 binding.imgProfile.setImageResource(android.R.drawable.ic_menu_report_image)
             }
 
-        // ---- Kullanıcı adı / key hazırlığı ----
+        // ---- Kullanıcı adı / key hazırlığı
         // displayName yoksa e-postanın @ öncesini alalım
         val displayName = auth.currentUser?.displayName?.trim().orEmpty()
         val email = auth.currentUser?.email.orEmpty()
