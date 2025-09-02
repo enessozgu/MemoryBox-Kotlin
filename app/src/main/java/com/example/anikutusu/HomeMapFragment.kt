@@ -5,8 +5,6 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
-import android.media.MediaPlayer
-import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -26,15 +24,20 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.example.anikutusu.databinding.FragmentHomeMapBinding
-import com.example.anikutusu.model.MemoryAddMode
 import com.example.anikutusu.model.GeofenceBroadcastReceiver
+import com.example.anikutusu.model.MemoryAddMode
 import com.example.anikutusu.model.MemoryAddViewModel
-import com.google.android.gms.location.*
+import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingClient
+import com.google.android.gms.location.GeofencingRequest
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
@@ -42,7 +45,6 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
@@ -62,21 +64,25 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var googleMap: GoogleMap
     private lateinit var geofencingClient: GeofencingClient
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var fusedLocationClient: com.google.android.gms.location.FusedLocationProviderClient
 
     private var selectedImageUri: Uri? = null
     private var dialogImageView: ImageView? = null
     private var dialogEditText: EditText? = null
     private var addMemoryDialog: AlertDialog? = null
-    private var recordedAudioFilePath: String? = null
-    private var mediaRecorder: MediaRecorder? = null
-    private var audioFilePath: String? = null
-    private var isRecording = false
-    private var locationPermissionGranted = false
 
+    private var isRecording = false
+    private var mediaRecorder: android.media.MediaRecorder? = null
+    private var audioFilePath: String? = null
+    private var recordedAudioFilePath: String? = null
+
+    private var locationPermissionGranted = false
     private lateinit var viewModel: MemoryAddViewModel
 
     private val GEOFENCE_RADIUS_IN_METERS = 100f
+
+    // 🔒 parent ViewPager2 (opsiyonel) – NPE’yi engeller
+    private var parentPager: ViewPager2? = null
 
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -106,9 +112,11 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             }
         }
 
-    val args: HomeMapFragmentArgs by navArgs()
+    private val args: HomeMapFragmentArgs by navArgs()
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentHomeMapBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -148,6 +156,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                 if (mode == MemoryAddMode.SERBEST_EKLE) "Mode: Free Add" else "Mode: Insert in Place"
         }
 
+        // İzinler
         locationAndAudioPermissionRequest.launch(
             arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
@@ -160,8 +169,8 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         binding.mapView.onCreate(savedInstanceState)
         binding.mapView.getMapAsync(this)
 
+        // Places init (API key’i güvenli şekilde sağlayın)
         if (!Places.isInitialized()) {
-            // ⚠️ API key’i güvenli yere taşı (manifest/local.properties)
             Places.initialize(requireContext(), "AIzaSyB85TYSviAbkfU8D7D7jZKgYHfopq4iHOY")
         }
 
@@ -177,32 +186,40 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         autocomplete.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
         autocomplete.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
-                place.latLng?.let { googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 15f)) }
+                place.latLng?.let {
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 15f))
+                }
             }
+
             override fun onError(status: com.google.android.gms.common.api.Status) {
-                Toast.makeText(requireContext(), "Hata: ${status.statusMessage}", Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext(), "Hata: ${status.statusMessage}", Toast.LENGTH_LONG)
+                    .show()
                 Log.e("AutocompleteError", "Place error: $status")
             }
         })
+
+        // 🔒 parent ViewPager2’yi güvenli yakala (varsa)
+        parentPager = requireActivity().findViewById(R.id.vp)
+            ?: parentFragment?.view?.findViewById(R.id.vp)
     }
 
     private fun showDrawerMenuItemAction(menuItemId: Int) {
         when (menuItemId) {
             R.id.nav_map -> {
-                Toast.makeText(requireContext(), "You're already here 👀", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Zaten haritadasın 👀", Toast.LENGTH_SHORT).show()
             }
             R.id.nav_badges, R.id.nav_rozet -> {
-                // Rozet ekranına git (sign out kaldırıldı)
                 findNavController().navigate(R.id.action_homeMapFragment_to_badgeFragment)
             }
             R.id.nav_memories -> {
-                findNavController().navigate(R.id.action_homePageFragment_to_memoryListFragment)
+                // Bu fragmentten doğru action
+                findNavController().navigate(R.id.action_homeMapFragment_to_memoryListFragment)
             }
             R.id.nav_settings -> {
                 googleMap.mapType = when (googleMap.mapType) {
-                    GoogleMap.MAP_TYPE_NORMAL    -> GoogleMap.MAP_TYPE_SATELLITE
+                    GoogleMap.MAP_TYPE_NORMAL -> GoogleMap.MAP_TYPE_SATELLITE
                     GoogleMap.MAP_TYPE_SATELLITE -> GoogleMap.MAP_TYPE_TERRAIN
-                    GoogleMap.MAP_TYPE_TERRAIN   -> GoogleMap.MAP_TYPE_NORMAL
+                    GoogleMap.MAP_TYPE_TERRAIN -> GoogleMap.MAP_TYPE_NORMAL
                     else -> GoogleMap.MAP_TYPE_NORMAL
                 }
             }
@@ -215,10 +232,11 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         moveCameraToUserLocation()
         loadExistingMemories()
 
-        val passedLat = args.latitude
-        val passedLng = args.longitude
-        if (passedLat != null && passedLng != null) {
-            val target = LatLng(passedLat.toDouble(), passedLng.toDouble())
+        // ✅ args float, null değil; sentinel kontrolü yap
+        val lat = args.latitude
+        val lng = args.longitude
+        if (lat != -1f && lng != -1f) {
+            val target = LatLng(lat.toDouble(), lng.toDouble())
             googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(target, 16f))
             googleMap.addMarker(MarkerOptions().position(target).title("Seçilen Konum"))
         }
@@ -226,8 +244,10 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         googleMap.setOnMapLongClickListener { latLng ->
             val currentMode = viewModel.selectedMode.value
             if (currentMode == MemoryAddMode.YERINDE_EKLE) {
-                if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED
+                if (ActivityCompat.checkSelfPermission(
+                        requireContext(),
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
                 ) {
                     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                         if (location != null) {
@@ -238,14 +258,21 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                             )
                             if (distance[0] <= 50f) {
                                 openAddMemoryDialog(latLng)
-                                // Rozet tetiklemesi, kayıt tamamlanınca openAddMemoryDialog->saveMemory içinde yapılacak
-                                Toast.makeText(requireContext(), "Konuma uygun, anı ekleyebilirsin.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Konuma uygun, anı ekleyebilirsin.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             } else {
-                                Toast.makeText(requireContext(),
-                                    "Bu konumdan 50m uzaktasın, anı ekleyemezsin.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Bu konumdan 50m uzaktasın, anı ekleyemezsin.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         } else {
-                            Toast.makeText(requireContext(), "Konum alınamadı.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), "Konum alınamadı.", Toast.LENGTH_SHORT)
+                                .show()
                         }
                     }
                 } else {
@@ -261,32 +288,48 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun enableMyLocation() {
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
-            ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED ||
+            ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
         ) {
             googleMap.isMyLocationEnabled = true
         }
     }
 
     private fun moveCameraToUserLocation() {
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
         ) return
 
-        fusedLocationClient.getCurrentLocation(LocationRequest.PRIORITY_HIGH_ACCURACY, null)
+        // getCurrentLocation: PRIORITY_HIGH_ACCURACY
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
             .addOnSuccessListener { location ->
                 if (location != null) {
                     googleMap.animateCamera(
-                        CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 17f)
+                        CameraUpdateFactory.newLatLngZoom(
+                            LatLng(location.latitude, location.longitude),
+                            17f
+                        )
                     )
                 }
             }
     }
 
-    // Firestore'dan eski anıları marker olarak yükleme (mevcut akışın)
+    // Firestore'dan eski anıları marker olarak yükleme
     private fun loadExistingMemories() {
         val db = FirebaseFirestore.getInstance()
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: "unknownUser"
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
         db.collection("memories")
             .whereEqualTo("userId", userId)
@@ -303,7 +346,11 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                 }
             }
             .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Anılar yüklenemedi: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Anılar yüklenemedi: ${e.localizedMessage}",
+                    Toast.LENGTH_LONG
+                ).show()
             }
     }
 
@@ -373,10 +420,10 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
     private fun startRecording() {
         val fileName = "${requireContext().externalCacheDir?.absolutePath}/${UUID.randomUUID()}.3gp"
         audioFilePath = fileName
-        mediaRecorder = MediaRecorder().apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
-            setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-            setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+        mediaRecorder = android.media.MediaRecorder().apply {
+            setAudioSource(android.media.MediaRecorder.AudioSource.MIC)
+            setOutputFormat(android.media.MediaRecorder.OutputFormat.THREE_GPP)
+            setAudioEncoder(android.media.MediaRecorder.AudioEncoder.AMR_NB)
             setOutputFile(audioFilePath)
             prepare()
             start()
@@ -391,7 +438,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         recordedAudioFilePath = audioFilePath
     }
 
-    // 🔥 Anı kaydetme (Firestore) + Realtime DB'ye iz + Rozet tetikleme
+    // Firestore + Storage + RDB iz + rozet tetikleme
     private suspend fun saveMemory(
         latLng: LatLng,
         text: String,
@@ -412,7 +459,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             val username = user.displayName ?: user.email?.substringBefore("@") ?: user.uid
             val userFolder = "${username}Data"
 
-            // Fotoğraf
+            // Fotoğraf yükleme
             var photoUrl: String? = null
             if (photoUri != null) {
                 try {
@@ -425,7 +472,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                 }
             }
 
-            // Ses
+            // Ses yükleme
             var audioUrl: String? = null
             if (audioFilePath != null) {
                 val audioFile = File(audioFilePath)
@@ -441,7 +488,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                 }
             }
 
-            // Firestore kaydı
+            // Firestore dokümanı
             val memoryData = hashMapOf(
                 "userId" to user.uid,
                 "username" to username,
@@ -454,7 +501,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             )
             val docRef = fs.collection("memories").add(memoryData).await()
 
-            // 🔹 Realtime DB'ye "iz" bırak: Users/{username}Data/Memories/push() = { ts }
+            // Realtime DB iz
             val rdb: DatabaseReference =
                 FirebaseDatabase.getInstance("https://anikutusuapp-default-rtdb.firebaseio.com/").reference
             val userNode = rdb.child("Users").child("${username}Data")
@@ -468,7 +515,7 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
             )
             marker?.tag = docRef.id
 
-            // ✅ Rozet tetikle (ilk anı + b2 ilerleme + opsiyonel konum rozetleri)
+            // Rozet
             viewModel.onMemoryPersisted(userLat = latLng.latitude, userLon = latLng.longitude)
 
         } catch (e: Exception) {
@@ -479,8 +526,10 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
     private fun addGeofence(latLng: LatLng, geofenceId: String) {
         if (!locationPermissionGranted) return
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
         ) {
             Toast.makeText(requireContext(), "Konum izni gerekli!", Toast.LENGTH_SHORT).show()
             return
@@ -515,8 +564,10 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun goToUserLocation() {
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
-            == PackageManager.PERMISSION_GRANTED
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
         ) {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 location?.let {
@@ -527,20 +578,22 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    // 🔒 NPE'siz ViewPager2 kontrolü
     override fun onResume() {
         super.onResume()
         binding.mapView.onResume()
-        requireActivity().findViewById<androidx.viewpager2.widget.ViewPager2>(R.id.vp).isUserInputEnabled = false
+        parentPager?.isUserInputEnabled = false
     }
 
     override fun onPause() {
-        requireActivity().findViewById<androidx.viewpager2.widget.ViewPager2>(R.id.vp).isUserInputEnabled = true
+        parentPager?.isUserInputEnabled = true
         binding.mapView.onPause()
         super.onPause()
     }
 
     override fun onDestroyView() {
         binding.mapView.onDestroy()
+        parentPager = null
         _binding = null
         super.onDestroyView()
     }

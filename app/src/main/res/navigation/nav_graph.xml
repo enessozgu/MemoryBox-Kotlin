@@ -12,6 +12,13 @@
     <action
         android:id="@+id/action_global_otherProfileFragment"
         app:destination="@id/otherProfileFragment" />
+    <action
+        android:id="@+id/action_global_timeCapsuleFragment"
+        app:destination="@id/timeCapsuleFragment" />
+
+    <action
+        android:id="@+id/action_global_homeMapFragment"
+        app:destination="@id/homeMapFragment" />
 
     <!-- Register -->
     <fragment
@@ -77,6 +84,10 @@
         <action
             android:id="@+id/action_homeMapFragment_to_badgeFragment"
             app:destination="@id/badgeFragment" />
+        <!-- Tek action yeter -->
+        <action
+            android:id="@+id/action_homeMapFragment_to_timeCapsuleFragment"
+            app:destination="@id/timeCapsuleFragment" />
     </fragment>
 
     <!-- Memory List -->
@@ -170,6 +181,9 @@
         <action
             android:id="@+id/action_homePageFragment_to_followInfoFragment"
             app:destination="@id/followInfoFragment" />
+        <action
+            android:id="@+id/action_homePageFragment_to_timeCapsuleFragment"
+            app:destination="@id/timeCapsuleFragment" />
     </fragment>
 
     <!-- Other Profile -->
@@ -199,4 +213,15 @@
         android:name="com.example.anikutusu.FollowInfoFragment"
         android:label="fragment_follow_info"
         tools:layout="@layout/fragment_follow_info" />
+
+    <!-- Time Capsule -->
+    <fragment
+        android:id="@+id/timeCapsuleFragment"
+        android:name="com.example.anikutusu.TimeCapsule"
+        android:label="Zaman Kapsülü"
+        tools:layout="@layout/fragment_time_capsule" >
+        <action
+            android:id="@+id/action_timeCapsuleFragment_to_homeMapFragment"
+            app:destination="@id/homeMapFragment" />
+    </fragment>
 </navigation>
