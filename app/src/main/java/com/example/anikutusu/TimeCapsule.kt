@@ -1,6 +1,6 @@
-// TimeCapsuleFragment.kt
 package com.example.anikutusu
 
+import android.Manifest
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.media.MediaPlayer
@@ -13,7 +13,18 @@ import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.storage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -21,19 +32,22 @@ import java.util.Locale
 
 class TimeCapsule : Fragment(R.layout.fragment_time_capsule) {
 
-
     // UI
     private lateinit var etTitle: EditText
     private lateinit var ivPhotoPreview: ImageView
     private lateinit var btnPickPhoto: Button
-
-    private lateinit var etMemory: EditText
 
     private lateinit var tvAudioStatus: TextView
     private lateinit var btnRecordAudio: Button
     private lateinit var btnPlayAudio: Button
     private lateinit var btnDeleteAudio: Button
     private lateinit var btnPickAudio: Button
+
+    private lateinit var btnPickOnMap: Button
+    private lateinit var tvLocationStatus: TextView
+    private lateinit var tvLat: TextView
+    private lateinit var tvLng: TextView
+    private lateinit var layoutLatLngHidden: LinearLayout
 
     private lateinit var switchTimeCapsule: Switch
     private lateinit var layoutUnlock: LinearLayout
@@ -42,7 +56,6 @@ class TimeCapsule : Fragment(R.layout.fragment_time_capsule) {
     private lateinit var etUnlockTime: EditText
     private lateinit var btnPickUnlockDate: Button
     private lateinit var btnPickUnlockTime: Button
-    private lateinit var btnPickOnMap: Button
 
     private lateinit var switchAddCollaborator: Switch
     private lateinit var layoutCollaborator: LinearLayout
@@ -62,6 +75,10 @@ class TimeCapsule : Fragment(R.layout.fragment_time_capsule) {
     private var isRecording = false
     private var isPlaying = false
 
+    // (opsiyonel) haritadan dönüşte set edebilirsin
+    private var selectedLat: Double? = null
+    private var selectedLng: Double? = null
+
     // Launchers
     private val pickImage = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -77,8 +94,9 @@ class TimeCapsule : Fragment(R.layout.fragment_time_capsule) {
     ) { uri ->
         uri?.let {
             pickedAudioUri = it
-            recordedFile = null // seçili dosya varsa kayıt dosyasını geçersiz say
+            recordedFile = null
             tvAudioStatus.text = "Ses: dosya seçildi"
+            syncAudioButtons()
         }
     }
 
@@ -91,22 +109,17 @@ class TimeCapsule : Fragment(R.layout.fragment_time_capsule) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
-
-
         // findViewById
         etTitle = view.findViewById(R.id.etTitle)
+
         ivPhotoPreview = view.findViewById(R.id.ivPhotoPreview)
         btnPickPhoto = view.findViewById(R.id.btnPickPhoto)
+        btnPickOnMap = view.findViewById(R.id.btnPickOnMap)
 
-        btnPickOnMap = view.findViewById(R.id.btnPickOnMap)   // <--- EKLENDİ
-
-
-        btnPickOnMap.setOnClickListener {
-            findNavController().navigate(R.id.action_global_homeMapFragment)
-        }
-
-
+        tvLocationStatus = view.findViewById(R.id.tvLocationStatus)
+        tvLat = view.findViewById(R.id.tvLat)
+        tvLng = view.findViewById(R.id.tvLng)
+        layoutLatLngHidden = view.findViewById(R.id.layoutLatLngHidden)
 
         tvAudioStatus = view.findViewById(R.id.tvAudioStatus)
         btnRecordAudio = view.findViewById(R.id.btnRecordAudio)
@@ -124,24 +137,42 @@ class TimeCapsule : Fragment(R.layout.fragment_time_capsule) {
 
         switchAddCollaborator = view.findViewById(R.id.switchAddCollaborator)
         layoutCollaborator = view.findViewById(R.id.layoutCollaborator)
-
+        etCollaborator = view.findViewById(R.id.etCollaborator)
         btnAddCollaborator = view.findViewById(R.id.btnAddCollaborator)
         collaboratorsContainer = view.findViewById(R.id.collaboratorsContainer)
 
         btnSave = view.findViewById(R.id.btnSave)
 
-        // Listeners
-        btnPickPhoto.setOnClickListener { pickImage.launch("image/*") }
 
+
+        findNavController().currentBackStackEntry
+            ?.savedStateHandle
+            ?.getLiveData<Bundle>("picked_location")
+            ?.observe(viewLifecycleOwner) { b ->
+                selectedLat = b.getDouble("picked_lat")
+                selectedLng = b.getDouble("picked_lng")
+                val addr = b.getString("picked_address").orEmpty()
+
+                layoutLatLngHidden.isVisible = true
+                tvLat.text = "lat: ${"%.6f".format(selectedLat)}"
+                tvLng.text = "lng: ${"%.6f".format(selectedLng)}"
+                tvLocationStatus.text = if (addr.isNotBlank())
+                    "Konum seçildi: $addr" else "Konum seçildi"
+            }
+
+
+        // --- Map
+        btnPickOnMap.setOnClickListener {
+            // Haritaya git; projendeki action id'yi doğrula
+            findNavController().navigate(R.id.action_global_homeMapFragment)
+        }
+
+        // --- Photo & Audio
+        btnPickPhoto.setOnClickListener { pickImage.launch("image/*") }
         btnPickAudio.setOnClickListener { pickAudio.launch("audio/*") }
 
         btnRecordAudio.setOnClickListener {
-            if (isRecording) {
-                stopRecording()
-            } else {
-                // izin iste
-                requestMicPermissionThenRecord()
-            }
+            if (isRecording) stopRecording() else requestRecordAudioPermission.launch(Manifest.permission.RECORD_AUDIO)
         }
 
         btnPlayAudio.setOnClickListener {
@@ -154,8 +185,10 @@ class TimeCapsule : Fragment(R.layout.fragment_time_capsule) {
             recordedFile?.runCatching { delete() }
             recordedFile = null
             tvAudioStatus.text = "Ses: seçilmedi / kaydedilmedi"
+            syncAudioButtons()
         }
 
+        // --- Time Capsule toggles
         switchTimeCapsule.setOnCheckedChangeListener { _, checked ->
             layoutUnlock.isVisible = checked
             layoutUnlockButtons.isVisible = checked
@@ -163,38 +196,53 @@ class TimeCapsule : Fragment(R.layout.fragment_time_capsule) {
 
         btnPickUnlockDate.setOnClickListener { showDatePicker { etUnlockDate.setText(it) } }
         btnPickUnlockTime.setOnClickListener { showTimePicker { etUnlockTime.setText(it) } }
-        // alanlara tıklayınca da picker açılsın
         etUnlockDate.setOnClickListener { btnPickUnlockDate.performClick() }
         etUnlockTime.setOnClickListener { btnPickUnlockTime.performClick() }
 
+        // --- Collaborator (BottomSheet ile)
         switchAddCollaborator.setOnCheckedChangeListener { _, checked ->
             layoutCollaborator.isVisible = checked
             collaboratorsContainer.isVisible = checked && collaboratorsContainer.childCount > 0
         }
 
         btnAddCollaborator.setOnClickListener {
-            val name = etCollaborator.text?.toString()?.trim().orEmpty()
-            if (name.isEmpty()) return@setOnClickListener
-            addSingleCollaboratorTag(name)
-            etCollaborator.text?.clear()
+            CollaboratorPickerBottomSheet().show(parentFragmentManager, "CollaboratorPicker")
         }
 
+        parentFragmentManager.setFragmentResultListener(
+            CollaboratorPickerBottomSheet.REQUEST_KEY_COLLABORATOR,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val name = bundle.getString(CollaboratorPickerBottomSheet.BUNDLE_USER_NAME).orEmpty()
+            val mail = bundle.getString(CollaboratorPickerBottomSheet.BUNDLE_USER_MAIL).orEmpty()
+
+            etCollaborator.setText("@$name")
+            collaboratorsContainer.removeAllViews()
+            val tv = TextView(requireContext()).apply {
+                text = "$name  <$mail>"
+                setPadding(24, 12, 24, 12)
+                setBackgroundResource(android.R.drawable.dialog_holo_light_frame)
+                setOnClickListener {
+                    collaboratorsContainer.removeAllViews()
+                    collaboratorsContainer.isVisible = false
+                    etCollaborator.text = null
+                }
+            }
+            collaboratorsContainer.addView(tv)
+            collaboratorsContainer.isVisible = switchAddCollaborator.isChecked
+        }
+
+        // --- Save
         btnSave.setOnClickListener { onSave() }
 
-        // İlk durum
+        // Initial
         syncAudioButtons()
     }
 
     // ====== Audio ======
-    private fun requestMicPermissionThenRecord() {
-        // Sadece RECORD_AUDIO yeter (cache'e yazıyoruz)
-        requestRecordAudioPermission.launch(android.Manifest.permission.RECORD_AUDIO)
-    }
-
     private fun startRecording() {
-        stopPlayback() // çalma açıksa kapat
+        stopPlayback()
 
-        // hedef dosya
         recordedFile = File.createTempFile("time_capsule_", ".m4a", requireContext().cacheDir)
         pickedAudioUri = null
 
@@ -216,8 +264,8 @@ class TimeCapsule : Fragment(R.layout.fragment_time_capsule) {
                 start()
                 isRecording = true
                 tvAudioStatus.text = "Kayıt alınıyor..."
-                syncAudioButtons()
                 btnRecordAudio.text = "Durdur"
+                syncAudioButtons()
             } catch (e: Exception) {
                 toast("Kayıt başlatılamadı: ${e.message}")
                 cleanupRecorder()
@@ -251,7 +299,7 @@ class TimeCapsule : Fragment(R.layout.fragment_time_capsule) {
             prepare()
             start()
         }
-        isPlaying = true              // <- serbest; çünkü var
+        isPlaying = true
         btnPlayAudio.text = "Durdur"
         tvAudioStatus.text = "Oynatılıyor..."
         mediaPlayer?.setOnCompletionListener { stopPlayback() }
@@ -259,11 +307,11 @@ class TimeCapsule : Fragment(R.layout.fragment_time_capsule) {
     }
 
     private fun stopPlayback() {
-        mediaPlayer?.runCatching { if (isPlaying) stop() }  // bu isPlaying, MediaPlayer’ınki; sorun değil
+        mediaPlayer?.runCatching { if (isPlaying) stop() }
         mediaPlayer?.runCatching { release() }
         mediaPlayer = null
 
-        isPlaying = false            // <- serbest; çünkü var
+        isPlaying = false
         btnPlayAudio.text = "Çal"
         tvAudioStatus.text =
             if (pickedAudioUri != null || recordedFile != null) "Ses hazır"
@@ -277,7 +325,6 @@ class TimeCapsule : Fragment(R.layout.fragment_time_capsule) {
         btnPlayAudio.isEnabled   = !isRecording && hasAudio
         btnDeleteAudio.isEnabled = !isRecording && hasAudio
     }
-
 
     // ====== Date & Time ======
     private fun showDatePicker(onPicked: (String) -> Unit) {
@@ -302,57 +349,170 @@ class TimeCapsule : Fragment(R.layout.fragment_time_capsule) {
         ).show()
     }
 
-    // ====== Collaborator (tek kişi sınırı) ======
-    private fun addSingleCollaboratorTag(name: String) {
-        collaboratorsContainer.removeAllViews()
-        val tv = TextView(requireContext()).apply {
-            text = "$name  ✕"
-            setPadding(24, 12, 24, 12)
-            // Basit görsel vurgu (opsiyonel)
-            setBackgroundColor(0xFFE0E0E0.toInt())
-            setOnClickListener {
-                collaboratorsContainer.removeAllViews()
-                collaboratorsContainer.isVisible = false
-            }
-        }
-        collaboratorsContainer.addView(tv)
-        collaboratorsContainer.isVisible = switchAddCollaborator.isChecked
+    private fun parseUnlockMillis(dateStr: String, timeStr: String): Long? {
+        return try {
+            val full = "$dateStr $timeStr"
+            val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+            sdf.parse(full)?.time
+        } catch (_: Exception) { null }
     }
 
-    // ====== Save ======
+    // ====== Save (Storage → Firestore → RTDB) ======
     private fun onSave() {
         val title = etTitle.text?.toString()?.trim().orEmpty()
-        val memory = etMemory.text?.toString()?.trim().orEmpty()
         val unlockDate = if (switchTimeCapsule.isChecked) etUnlockDate.text?.toString()?.trim().orEmpty() else ""
         val unlockTime = if (switchTimeCapsule.isChecked) etUnlockTime.text?.toString()?.trim().orEmpty() else ""
         val collaborator = if (switchAddCollaborator.isChecked && collaboratorsContainer.childCount > 0) {
-            (collaboratorsContainer.getChildAt(0) as? TextView)?.text?.toString()?.replace("  ✕", "")?.trim().orEmpty()
+            (collaboratorsContainer.getChildAt(0) as? TextView)?.text?.toString()
+                ?.replace("  ✕", "")?.trim().orEmpty()
         } else ""
 
         val audioUri: Uri? = pickedAudioUri ?: recordedFile?.let { Uri.fromFile(it) }
 
-        // burada DB/Upload entegrasyonunu yaparsın; şimdilik sadece basic doğrulama
         if (title.isEmpty()) { toast("Başlık zorunlu."); return }
-        if (memory.isEmpty()) { toast("Anı metni boş olamaz."); return }
         if (switchTimeCapsule.isChecked && (unlockDate.isEmpty() || unlockTime.isEmpty())) {
             toast("Açılma tarihi ve saatini seç."); return
         }
 
-        // örnek log/toast
-        val info = buildString {
-            appendLine("Başlık: $title")
-            appendLine("Metin: ${memory.take(40)}${if (memory.length > 40) "..." else ""}")
-            appendLine("Foto: ${photoUri ?: "yok"}")
-            appendLine("Ses: ${audioUri ?: "yok"}")
-            appendLine("Zaman kapsülü: ${switchTimeCapsule.isChecked} ($unlockDate $unlockTime)")
-            appendLine("Ortak: ${collaborator.ifEmpty { "yok" }}")
+        val unlockAtMillis = if (switchTimeCapsule.isChecked) parseUnlockMillis(unlockDate, unlockTime) else null
+
+        btnSave.isEnabled = false
+        viewLifecycleOwner.lifecycleScope.launch {
+            val ok = saveMemoryToFirebase(
+                title = title,
+                photoUri = photoUri,
+                audioUri = audioUri,
+                unlockAtMillis = unlockAtMillis,
+                collaborator = collaborator,
+                latitude = selectedLat,
+                longitude = selectedLng
+            )
+            btnSave.isEnabled = true
+            if (ok) {
+                toast("Anı kaydedildi!")
+                // Temizle
+                etTitle.text?.clear()
+                ivPhotoPreview.setImageDrawable(null)
+                photoUri = null
+                pickedAudioUri = null
+                recordedFile?.runCatching { delete() }
+                recordedFile = null
+                tvAudioStatus.text = "Ses: seçilmedi / kaydedilmedi"
+            } else {
+                toast("Kaydetme sırasında hata oluştu.")
+            }
         }
-        toast("Kaydedildi (demo).")
-        android.util.Log.d("TimeCapsule", info)
     }
 
+    private suspend fun getNextPostIndex(uid: String): Long {
+        val fs = FirebaseFirestore.getInstance()
+        val metaRef = fs.collection("users_meta").document(uid)
+
+        return fs.runTransaction { tx ->
+            val snap = tx.get(metaRef)
+            val current = snap.getLong("postCount") ?: 0L
+            val next = current + 1L
+            if (snap.exists()) {
+                tx.update(metaRef, mapOf("postCount" to next))
+            } else {
+                tx.set(metaRef, mapOf("postCount" to next))
+            }
+            next
+        }.await() // <<< kritik kısım
+    }
+
+
+
+
+    private suspend fun saveMemoryToFirebase(
+        title: String,
+        photoUri: Uri?,
+        audioUri: Uri?,
+        unlockAtMillis: Long?,
+        collaborator: String,
+        latitude: Double?,
+        longitude: Double?
+    ): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val user = FirebaseAuth.getInstance().currentUser ?: return@withContext false
+            val uid = user.uid
+            val username = user.displayName ?: user.email?.substringBefore("@") ?: uid
+            val nextIndex = getNextPostIndex(uid)
+            val prettyIndex = nextIndex.toString()
+            val userFolder = "${username}Data"
+
+            val storageRef = Firebase.storage.reference
+
+            // Foto yükle
+            var photoUrl: String? = null
+            if (photoUri != null) {
+                val photoName = "${username}${prettyIndex}photo.jpg"
+                val photoRef = storageRef.child("users/$userFolder/images/$photoName")
+                photoRef.putFile(photoUri).await()
+                photoUrl = photoRef.downloadUrl.await().toString()
+            }
+
+            // Ses yükle
+            var audioUrl: String? = null
+            if (audioUri != null) {
+                val audioName = "${username}${prettyIndex}audio.m4a"
+                val audioRef = storageRef.child("users/$userFolder/audio/$audioName")
+                audioRef.putFile(audioUri).await()
+                audioUrl = audioRef.downloadUrl.await().toString()
+            }
+
+            // 🔽🔽🔽 BURAYA EKLE 🔽🔽🔽
+            // --- GPS JSON ---
+            var gpsUrl: String? = null
+            if (latitude != null && longitude != null) {
+                val gpsJson = """
+                {
+                  "lat": $latitude,
+                  "lng": $longitude,
+                  "title": ${JSONObject.quote(title)},
+                  "username": ${JSONObject.quote(username)},
+                  "timestamp": ${System.currentTimeMillis()}
+                }
+            """.trimIndent()
+
+                val gpsName = "${username}${nextIndex}gps.json"
+                val gpsRef  = storageRef.child("users/$userFolder/gps/$gpsName")
+                val bytes = gpsJson.toByteArray(Charsets.UTF_8)
+                gpsRef.putBytes(bytes).await()
+                gpsUrl = gpsRef.downloadUrl.await().toString()
+            }
+            // 🔼🔼🔼 BURAYA EKLE 🔼🔼🔼
+
+            // Firestore dokümanı oluştur
+            val fs = FirebaseFirestore.getInstance()
+            val data = mutableMapOf<String, Any?>(
+                "userId" to uid,
+                "username" to username,
+                "title" to title,
+                "photoUrl" to photoUrl,
+                "audioUrl" to audioUrl,
+                "gpsUrl" to gpsUrl,   // 🔽 Firestore’a linki de ekliyoruz
+                "timestamp" to System.currentTimeMillis(),
+                "collaborator" to collaborator.ifBlank { null },
+                "unlockAt" to unlockAtMillis,
+                "postIndex" to nextIndex
+            )
+            if (latitude != null && longitude != null) {
+                data["latitude"] = latitude
+                data["longitude"] = longitude
+            }
+
+            fs.collection("memories").add(data).await()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+
     // ====== Utils ======
-    private fun toast(msg: String) = Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+    private fun toast(msg: String) =
+        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
 
     override fun onStop() {
         super.onStop()

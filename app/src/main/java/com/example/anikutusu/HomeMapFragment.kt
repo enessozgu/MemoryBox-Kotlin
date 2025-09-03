@@ -232,7 +232,6 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
         moveCameraToUserLocation()
         loadExistingMemories()
 
-        // ✅ args float, null değil; sentinel kontrolü yap
         val lat = args.latitude
         val lng = args.longitude
         if (lat != -1f && lng != -1f) {
@@ -243,10 +242,27 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
 
         googleMap.setOnMapLongClickListener { latLng ->
             val currentMode = viewModel.selectedMode.value
+
+            val deliverPickedLocation: () -> Unit = {
+                val bundle = Bundle().apply {
+                    putDouble("picked_lat", latLng.latitude)
+                    putDouble("picked_lng", latLng.longitude)
+                }
+                val nav = findNavController()
+                val prev = nav.previousBackStackEntry
+                if (prev != null) {
+                    prev.savedStateHandle.set("picked_location", bundle)
+                    nav.popBackStack() // TimeCapsule’a dön
+                } else {
+                    // Prev yoksa (örn. startDestination ise) graceful fallback
+                    Toast.makeText(requireContext(),
+                        "Önce TimeCapsule ekranından gelmelisin.", Toast.LENGTH_SHORT).show()
+                }
+            }
+
             if (currentMode == MemoryAddMode.YERINDE_EKLE) {
                 if (ActivityCompat.checkSelfPermission(
-                        requireContext(),
-                        Manifest.permission.ACCESS_FINE_LOCATION
+                        requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
                     ) == PackageManager.PERMISSION_GRANTED
                 ) {
                     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
@@ -257,35 +273,32 @@ class HomeMapFragment : Fragment(), OnMapReadyCallback {
                                 latLng.latitude, latLng.longitude, distance
                             )
                             if (distance[0] <= 50f) {
-                                openAddMemoryDialog(latLng)
-                                Toast.makeText(
-                                    requireContext(),
-                                    "Konuma uygun, anı ekleyebilirsin.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                deliverPickedLocation()
                             } else {
-                                Toast.makeText(
-                                    requireContext(),
+                                Toast.makeText(requireContext(),
                                     "Bu konumdan 50m uzaktasın, anı ekleyemezsin.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                    Toast.LENGTH_SHORT).show()
                             }
                         } else {
-                            Toast.makeText(requireContext(), "Konum alınamadı.", Toast.LENGTH_SHORT)
-                                .show()
+                            Toast.makeText(requireContext(),
+                                "Konum alınamadı.", Toast.LENGTH_SHORT).show()
                         }
                     }
                 } else {
-                    Toast.makeText(requireContext(), "Konum izni yok.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(),
+                        "Konum izni yok.", Toast.LENGTH_SHORT).show()
                 }
             } else {
-                openAddMemoryDialog(latLng)
+                // Serbest modda da direkt seçimi geri yolla
+                deliverPickedLocation()
             }
 
-            val geofenceId = UUID.randomUUID().toString()
+            // (opsiyonel) geofence
+            val geofenceId = java.util.UUID.randomUUID().toString()
             addGeofence(latLng, geofenceId)
         }
     }
+
 
     private fun enableMyLocation() {
         if (ActivityCompat.checkSelfPermission(

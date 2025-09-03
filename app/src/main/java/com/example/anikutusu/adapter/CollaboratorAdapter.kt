@@ -1,51 +1,33 @@
-package com.example.anikutusu.adapter
+package com.example.anikutusu
 
-import android.content.Context
-import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.navigation.Navigation
 import androidx.recyclerview.widget.RecyclerView
-import com.example.anikutusu.R
-import com.example.anikutusu.UserDataClass
 
-class CollaboratorAdapter(private val mContext: Context, private var userList: List<UserDataClass>) : RecyclerView.Adapter<CollaboratorAdapter.MyViewHolder>() {
+class CollaboratorAdapter(
+    private val items: List<SimpleUser>,
+    private val onClick: (SimpleUser) -> Unit
+) : RecyclerView.Adapter<CollaboratorAdapter.VH>() {
 
-    inner class MyViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val cl: ConstraintLayout = view.findViewById(R.id.cl)
-        val imgLogo: ImageView = view.findViewById(R.id.imgLogo)
-        val username: TextView = view.findViewById(R.id.username)
+    class VH(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val tvName: TextView = itemView.findViewById(R.id.tvName)
+        val tvMail: TextView = itemView.findViewById(R.id.tvMail)
     }
 
-    override fun getItemCount(): Int = userList.size
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        val design = LayoutInflater.from(mContext).inflate(R.layout.add_user_cardview, parent, false)
-        return MyViewHolder(design)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+        val v = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_collaborator, parent, false)
+        return VH(v)
     }
 
-    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        val item = userList[position]
-
-        holder.username.text = item.username
-
-
-        holder.cl.setOnClickListener {v->
-            val bundle=Bundle().apply {
-                putString("username",item.username)
-                putString("imgLogo",item.photoImage.toString())
-                putString("email",item.email)
-            }
-
-            Navigation.findNavController(v).navigate(R.id.action_homePageFragment_to_otherProfileFragment,bundle)
-        }
-
+    override fun onBindViewHolder(holder: VH, position: Int) {
+        val u = items[position]
+        holder.tvName.text = u.userName
+        holder.tvMail.text = u.userMail
+        holder.itemView.setOnClickListener { onClick(u) }
     }
 
-
-
+    override fun getItemCount(): Int = items.size
 }

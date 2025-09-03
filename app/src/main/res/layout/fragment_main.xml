@@ -19,7 +19,7 @@
     <Button
         android:layout_width="30dp"
         android:layout_height="30dp"
-        android:background="@drawable/addcontact"
+        android:background="@drawable/hourglasses"
         app:layout_constraintTop_toTopOf="@id/toolbar"
         app:layout_constraintBottom_toBottomOf="@id/toolbar"
         app:layout_constraintEnd_toStartOf="@id/announcement"
