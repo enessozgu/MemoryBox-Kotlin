@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:id="@+id/root"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:animateLayoutChanges="true"
+        android:background="#F7FAFF">
+
+        <!-- Başlık -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Anı Başlığı"
+            android:textSize="14sp"
+            android:textColor="#334155"
+            android:layout_marginBottom="6dp" />
+
+        <EditText
+            android:id="@+id/etTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Örn: Yaz Kampı"
+            android:inputType="textCapSentences|textPersonName"
+            android:maxLines="1"
+            android:backgroundTint="#7C3AED" />
+
+        <!-- Fotoğraf seçimi + önizleme -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:layout_marginTop="12dp"
+            android:background="#FFFFFF"
+            android:padding="8dp">
+
+            <ImageView
+                android:id="@+id/ivPhotoPreview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="Fotoğraf önizleme"
+                android:background="#E5E7EB" />
+
+            <Button
+                android:id="@+id/btnPickPhoto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Fotoğraf Seç"
+                android:textAllCaps="false"
+                android:backgroundTint="#7C3AED"
+                android:textColor="#FFFFFF" />
+        </FrameLayout>
+
+        <!-- KONUM -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Konum"
+            android:textSize="14sp"
+            android:textColor="#334155"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="6dp" />
+
+        <FrameLayout
+            android:id="@+id/locationCard"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="#FFFFFF"
+            android:padding="8dp"
+            android:layout_marginBottom="8dp">
+
+            <ImageView
+                android:id="@+id/ivMapPreview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="Harita önizleme"
+                android:background="#E2E8F0" />
+
+            <Button
+                android:id="@+id/btnPickOnMap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Haritada Seç"
+                android:textAllCaps="false"
+                android:backgroundTint="#0EA5E9"
+                android:textColor="#FFFFFF" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvLocationStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Konum: seçilmedi"
+            android:textColor="#475569" />
+
+        <TextView
+            android:id="@+id/tvAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#111827"
+            android:layout_marginTop="4dp" />
+
+        <LinearLayout
+            android:id="@+id/layoutLatLngHidden"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            android:layout_marginTop="4dp">
+
+            <TextView
+                android:id="@+id/tvLat"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="lat: -" />
+
+            <TextView
+                android:id="@+id/tvLng"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="lng: -" />
+        </LinearLayout>
+
+        <!-- Ses -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ses"
+            android:textSize="14sp"
+            android:textColor="#334155"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="6dp" />
+
+        <TextView
+            android:id="@+id/tvAudioStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ses: seçilmedi / kaydedilmedi"
+            android:textColor="#475569" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:weightSum="3">
+
+            <Button
+                android:id="@+id/btnRecordAudio"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Kaydet"
+                android:textAllCaps="false"
+                android:backgroundTint="#22C55E"
+                android:textColor="#FFFFFF" />
+
+            <Button
+                android:id="@+id/btnPlayAudio"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Çal"
+                android:textAllCaps="false"
+                android:backgroundTint="#06B6D4"
+                android:textColor="#FFFFFF" />
+
+            <Button
+                android:id="@+id/btnDeleteAudio"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Sil"
+                android:textAllCaps="false"
+                android:backgroundTint="#EF4444"
+                android:textColor="#FFFFFF" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnPickAudio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Dosyadan Seç"
+            android:textAllCaps="false"
+            android:backgroundTint="#7C3AED"
+            android:textColor="#FFFFFF" />
+
+        <!-- Zaman kapsülü -->
+        <Switch
+            android:id="@+id/switchTimeCapsule"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Zaman Kapsülü (belirlenen zamanda açılsın)"
+            android:textColor="#111827" />
+
+        <LinearLayout
+            android:id="@+id/layoutUnlock"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/etUnlockDate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:focusable="false"
+                android:clickable="false"
+                android:hint="Açılma Tarihi"
+                android:backgroundTint="#7C3AED" />
+
+            <Space
+                android:layout_width="8dp"
+                android:layout_height="wrap_content" />
+
+            <EditText
+                android:id="@+id/etUnlockTime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:focusable="false"
+                android:clickable="false"
+                android:hint="Açılma Saati"
+                android:backgroundTint="#7C3AED" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutUnlockButtons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:layout_marginTop="6dp"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/btnPickUnlockDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tarih Seç"
+                android:textAllCaps="false"
+                android:backgroundTint="#0EA5E9"
+                android:textColor="#FFFFFF" />
+
+            <Space
+                android:layout_width="8dp"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/btnPickUnlockTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Saat Seç"
+                android:textAllCaps="false"
+                android:backgroundTint="#0EA5E9"
+                android:textColor="#FFFFFF" />
+        </LinearLayout>
+
+        <!-- Ortak -->
+        <Switch
+            android:id="@+id/switchAddCollaborator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Anıya ortak ekle (1 kişi)"
+            android:textColor="#111827" />
+
+        <LinearLayout
+            android:id="@+id/layoutCollaborator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/etCollaborator"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:hint="Seçilen kişi"
+                android:focusable="false"
+                android:clickable="false"
+                android:backgroundTint="#7C3AED" />
+
+            <Space
+                android:layout_width="8dp"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/btnAddCollaborator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kişi Seç"
+                android:textAllCaps="false"
+                android:backgroundTint="#22C55E"
+                android:textColor="#FFFFFF" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/collaboratorsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="horizontal"
+            android:visibility="gone" />
+
+        <!-- Kaydet -->
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="Anıyı Oluştur"
+            android:textAllCaps="false"
+            android:backgroundTint="#7C3AED"
+            android:textColor="#FFFFFF" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="24dp" />
+    </LinearLayout>
+</ScrollView>

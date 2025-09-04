@@ -2,7 +2,9 @@ package com.example.anikutusu
 
 import android.os.Bundle
 import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.anikutusu.databinding.FragmentOtherProfileBinding
@@ -17,7 +19,11 @@ class OtherProfileFragment : Fragment() {
 
     private fun String.sanitizeKey() = this.replace(".", "_")
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         binding = FragmentOtherProfileBinding.inflate(inflater, container, false)
 
         // 1) Argüman: görüntülenen profilin kullanıcı adı
@@ -32,6 +38,7 @@ class OtherProfileFragment : Fragment() {
         // 3) Takip et
         binding.followButton.setOnClickListener {
             if (profileUserName.isEmpty() || loginUserName.isEmpty()) return@setOnClickListener
+
             db.child(loginKey).child("userFollowingList")
                 .child("${loginUserName}Followed${profileUserName}".sanitizeKey())
                 .setValue(profileUserName)
@@ -41,27 +48,48 @@ class OtherProfileFragment : Fragment() {
                 .setValue(loginUserName)
         }
 
-        // 4) Sayılar (Realtime)
-        db.child(profileKey).child("userFollowerList").addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snap: DataSnapshot) { binding.followersnumbers.text = snap.childrenCount.toString() }
-            override fun onCancelled(err: DatabaseError) { Log.e("followersRef", err.message) }
-        })
-        db.child(profileKey).child("userFollowingList").addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snap: DataSnapshot) { binding.followednumbers.text = snap.childrenCount.toString() }
-            override fun onCancelled(err: DatabaseError) { Log.e("followingRef", err.message) }
-        })
+        // 4) SAYILAR (Realtime)
+        // Takipçi (followers)
+        db.child(profileKey).child("userFollowerList")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snap: DataSnapshot) {
+                    binding.followersnumbers.text = snap.childrenCount.toString()
+                }
+                override fun onCancelled(err: DatabaseError) {
+                    Log.e("followersRef", err.message)
+                }
+            })
 
-        // 5) >>> Sayaçlara tıklayınca FollowInfo’ya git
+        // Takip edilen (following)
+        db.child(profileKey).child("userFollowingList")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snap: DataSnapshot) {
+                    binding.followednumbers.text = snap.childrenCount.toString()
+                }
+                override fun onCancelled(err: DatabaseError) {
+                    Log.e("followingRef", err.message)
+                }
+            })
+
+        // 5) Rozet butonu (badge ekranına git)
+        binding.RozetButton.setOnClickListener {
+            findNavController().navigate(R.id.badgeFragment)
+        }
+
+        // 6) Followers / Following sayfaları (global action + initialTab)
         fun goFollowInfo(initialTab: String) {
             val bundle = Bundle().apply {
-                putString("username", profileUserName)   // Hangi profilin listesi açılacak
+                putString("username", profileUserName)   // Hangi profilin listesi
                 putString("initialTab", initialTab)      // "followers" | "following"
+                // İstersen sayıları da gönder (opsiyonel):
+                putString("followersCount", binding.followersnumbers.text.toString())
+                putString("followingCount", binding.followednumbers.text.toString())
             }
             findNavController().navigate(R.id.action_global_followInfoFragment, bundle)
         }
 
-        binding.followersnumbers.setOnClickListener { goFollowInfo("followers") } // Takipçi
-        binding.followednumbers.setOnClickListener { goFollowInfo("following") } // Takip edilen
+        binding.followersnumbers.setOnClickListener { goFollowInfo("followers") }
+        binding.followednumbers.setOnClickListener { goFollowInfo("following") }
 
         return binding.root
     }

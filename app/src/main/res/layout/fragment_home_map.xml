@@ -50,6 +50,8 @@
             android:text="Mod: Serbest Ekle"
             android:textColor="#FFFFFF" />
 
+
+
         <Button
             android:id="@+id/anlik"
             android:layout_width="40dp"

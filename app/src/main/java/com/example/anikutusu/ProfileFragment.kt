@@ -1,9 +1,7 @@
 package com.example.anikutusu
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
@@ -13,33 +11,25 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.storage.storage
 
-class ProfileFragment : Fragment() {
+class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
 
-    // Firebase
-    private val auth by lazy { FirebaseAuth.getInstance() }
     private val usersRef by lazy { FirebaseDatabase.getInstance().reference.child("Users") }
+    private val auth by lazy { FirebaseAuth.getInstance() }
 
-    // Dinleyicileri sonradan kaldırmak için referans tutalım
+    // Realtime dinleyicileri
     private var followersListener: ValueEventListener? = null
     private var followingListener: ValueEventListener? = null
 
     private fun String.sanitizeKey() = this.replace(".", "_")
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentProfileBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentProfileBinding.bind(view)
 
-        // ---- Profil görseli (senin mevcut kodun) ----
+        // --- Profil görseli (Storage) ---
         val storageRef = Firebase.storage.reference
             .child("images/f348f647-eba8-4d8a-a6a3-682fc4622783.jpg")
 
@@ -56,18 +46,16 @@ class ProfileFragment : Fragment() {
                 binding.imgProfile.setImageResource(android.R.drawable.ic_menu_report_image)
             }
 
-        // ---- Kullanıcı adı / key hazırlığı
-        // displayName yoksa e-postanın @ öncesini alalım
+        // --- Kullanıcı adı / key ---
         val displayName = auth.currentUser?.displayName?.trim().orEmpty()
         val email = auth.currentUser?.email.orEmpty()
         val fallbackName = email.substringBefore('@')
         val profileUserName = (if (displayName.isNotEmpty()) displayName else fallbackName).trim()
         val profileKey = "${profileUserName}Data".sanitizeKey()
 
-        // (İstersen ekranda göster)
-        // binding.txtUserName.text = profileUserName
+        binding.userName.text = profileUserName
 
-        // ---- Takipçi / Takip edilen sayıları (Realtime) ----
+        // --- Realtime sayaçlar ---
         val followersRef = usersRef.child(profileKey).child("userFollowerList")
         val followingRef = usersRef.child(profileKey).child("userFollowingList")
 
@@ -75,34 +63,37 @@ class ProfileFragment : Fragment() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 binding.followersnumbers.text = snapshot.childrenCount.toString()
             }
-            override fun onCancelled(error: DatabaseError) { /* loglayabilirsin */ }
+            override fun onCancelled(error: DatabaseError) { /* log optional */ }
         }
         followingListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 binding.followednumbers.text = snapshot.childrenCount.toString()
             }
-            override fun onCancelled(error: DatabaseError) { /* loglayabilirsin */ }
+            override fun onCancelled(error: DatabaseError) { /* log optional */ }
         }
 
         followersRef.addValueEventListener(followersListener as ValueEventListener)
         followingRef.addValueEventListener(followingListener as ValueEventListener)
 
-        // ---- Sayaçlara tıklayınca FollowInfo'ya git ----
+        // --- FollowInfo'ya geçiş (global action + initialTab) ---
         fun goFollowInfo(initialTab: String) {
             val bundle = Bundle().apply {
-                putString("username", profileUserName) // hangi profilin listesi açılacak
-                putString("initialTab", initialTab)    // "followers" | "following"
+                putString("username", profileUserName)               // Hangi profil?
+                putString("initialTab", initialTab)                  // "followers" | "following"
+                putString("followersCount", binding.followersnumbers.text.toString())
+                putString("followingCount", binding.followednumbers.text.toString())
             }
             findNavController().navigate(R.id.action_global_followInfoFragment, bundle)
         }
 
-        binding.followersnumbers.setOnClickListener { goFollowInfo("followers") } // Takipçi listesi
-        binding.followednumbers.setOnClickListener { goFollowInfo("following") } // Takip edilen listesi
+        binding.followersnumbers.setOnClickListener { goFollowInfo("followers") }
+        binding.followednumbers.setOnClickListener { goFollowInfo("following") }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Dinleyicileri kaldır (memory leak ve eski view'a yazmayı önler)
+
+        // Dinleyicileri kaldır
         val displayName = auth.currentUser?.displayName?.trim().orEmpty()
         val email = auth.currentUser?.email.orEmpty()
         val fallbackName = email.substringBefore('@')

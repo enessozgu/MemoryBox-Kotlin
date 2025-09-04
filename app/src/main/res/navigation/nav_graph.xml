@@ -5,13 +5,21 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/registerFragment">
 
+    <!-- 🔗 GLOBAL ACTIONS -->
     <action
         android:id="@+id/action_global_followInfoFragment"
         app:destination="@id/followInfoFragment" />
     <action
         android:id="@+id/action_global_otherProfileFragment"
         app:destination="@id/otherProfileFragment" />
+    <action
+        android:id="@+id/action_global_timeCapsuleFragment"
+        app:destination="@id/timeCapsuleFragment" />
+    <action
+        android:id="@+id/action_global_homeMapFragment"
+        app:destination="@id/homeMapFragment" />
 
+    <!-- Register -->
     <fragment
         android:id="@+id/registerFragment"
         android:name="com.example.anikutusu.RegisterFragment"
@@ -27,6 +35,7 @@
             app:destination="@id/homePageFragment" />
     </fragment>
 
+    <!-- Login -->
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.example.anikutusu.LoginFragment"
@@ -45,6 +54,7 @@
             app:destination="@id/homePageFragment" />
     </fragment>
 
+    <!-- Home Map -->
     <fragment
         android:id="@+id/homeMapFragment"
         android:name="com.example.anikutusu.HomeMapFragment"
@@ -76,8 +86,13 @@
         <action
             android:id="@+id/action_homeMapFragment_to_badgeFragment"
             app:destination="@id/badgeFragment" />
+
+        <action
+            android:id="@+id/action_homeMapFragment_to_timeCapsuleFragment"
+            app:destination="@id/timeCapsuleFragment" />
     </fragment>
 
+    <!-- Memory List -->
     <fragment
         android:id="@+id/memoryListFragment"
         android:name="com.example.anikutusu.MemoryListFragment"
@@ -94,6 +109,7 @@
             app:destination="@id/bonusgps" />
     </fragment>
 
+    <!-- Bonus GPS -->
     <fragment
         android:id="@+id/bonusgps"
         android:name="com.example.anikutusu.BonusGps"
@@ -112,12 +128,14 @@
         </action>
     </fragment>
 
+    <!-- Test -->
     <fragment
         android:id="@+id/testFragment"
         android:name="com.example.anikutusu.TestFragment"
         android:label="fragment_test"
         tools:layout="@layout/fragment_test" />
 
+    <!-- Forgot Password -->
     <fragment
         android:id="@+id/forgotPassword"
         android:name="com.example.anikutusu.ForgotPassword"
@@ -128,6 +146,7 @@
             app:destination="@id/registerFragment" />
     </fragment>
 
+    <!-- Profile -->
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.example.anikutusu.ProfileFragment"
@@ -138,6 +157,7 @@
             app:destination="@id/followInfoFragment" />
     </fragment>
 
+    <!-- Home Page -->
     <fragment
         android:id="@+id/homePageFragment"
         android:name="com.example.anikutusu.HomePageFragment"
@@ -161,9 +181,12 @@
         <action
             android:id="@+id/action_homePageFragment_to_followInfoFragment"
             app:destination="@id/followInfoFragment" />
+        <action
+            android:id="@+id/action_homePageFragment_to_timeCapsuleFragment"
+            app:destination="@id/timeCapsuleFragment" />
     </fragment>
 
-
+    <!-- Other Profile -->
     <fragment
         android:id="@+id/otherProfileFragment"
         android:name="com.example.anikutusu.OtherProfileFragment"
@@ -177,15 +200,28 @@
             app:destination="@id/followInfoFragment" />
     </fragment>
 
+    <!-- Badge -->
     <fragment
         android:id="@+id/badgeFragment"
         android:name="com.example.anikutusu.ui.badges.BadgeFragment"
         android:label="Rozetler"
         tools:layout="@layout/fragment_badge" />
 
+    <!-- Follow Info -->
     <fragment
         android:id="@+id/followInfoFragment"
         android:name="com.example.anikutusu.FollowInfoFragment"
         android:label="fragment_follow_info"
         tools:layout="@layout/fragment_follow_info" />
+
+    <!-- Time Capsule -->
+    <fragment
+        android:id="@+id/timeCapsuleFragment"
+        android:name="com.example.anikutusu.TimeCapsule"
+        android:label="Zaman Kapsülü"
+        tools:layout="@layout/fragment_time_capsule" >
+        <action
+            android:id="@+id/action_timeCapsuleFragment_to_homeMapFragment"
+            app:destination="@id/homeMapFragment" />
+    </fragment>
 </navigation>

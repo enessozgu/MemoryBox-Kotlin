@@ -8,6 +8,7 @@ import androidx.compose.material3.Tab
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.example.anikutusu.databinding.FragmentHomePageBinding
 import com.google.android.material.tabs.TabLayoutMediator
@@ -34,7 +35,7 @@ class HomePageFragment : Fragment() {
         fragmentListesi.add(MainFragment())
         fragmentListesi.add(SearchFragment())
         fragmentListesi.add(ProfileFragment())
-        fragmentListesi.add(mapFrag)
+        fragmentListesi.add(TimeCapsule())
 
 
         fragmentBaslikListesi.add("Anasayfa")
@@ -58,9 +59,10 @@ class HomePageFragment : Fragment() {
                 0->tab.setIcon(R.drawable.home)
                 1->tab.setIcon(R.drawable.search)
                 2->tab.setIcon(R.drawable.user)
-                3->tab.setIcon(R.drawable.location)
+                3->tab.setIcon(R.drawable.addpp)
             }
         }.attach()
+
 
 
         return binding.root
