@@ -6,7 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.bumptech.glide.Glide
+import com.example.anikutusu.adapter.ShowMemoryAdapter
 import com.example.anikutusu.databinding.FragmentProfileBinding
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -24,6 +28,8 @@ class ProfileFragment : Fragment() {
 
     // Dinleyicileri sonradan kaldırmak için referans tutalım
     private var followersListener: ValueEventListener? = null
+    private lateinit var list:ArrayList<ShowMemoryDataClass>
+    private lateinit var adapter:ShowMemoryAdapter
     private var followingListener: ValueEventListener? = null
 
     private fun String.sanitizeKey() = this.replace(".", "_")
@@ -33,6 +39,21 @@ class ProfileFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
+
+        binding.rv.setHasFixedSize(true)
+        binding.rv.layoutManager=GridLayoutManager(requireContext(),3)
+
+        list= ArrayList()
+        list.add(ShowMemoryDataClass(R.drawable.firstimg))
+        list.add(ShowMemoryDataClass(R.drawable.secondimg))
+        list.add(ShowMemoryDataClass(R.drawable.thirdimg))
+        list.add(ShowMemoryDataClass(R.drawable.fourthimg))
+        list.add(ShowMemoryDataClass(R.drawable.fivethimg))
+
+        adapter= ShowMemoryAdapter(requireContext(),list)
+        binding.rv.adapter=adapter
+
+
         return binding.root
     }
 
@@ -65,7 +86,7 @@ class ProfileFragment : Fragment() {
         val profileKey = "${profileUserName}Data".sanitizeKey()
 
         // (İstersen ekranda göster)
-        // binding.txtUserName.text = profileUserName
+         binding.userName.text = profileUserName
 
         // ---- Takipçi / Takip edilen sayıları (Realtime) ----
         val followersRef = usersRef.child(profileKey).child("userFollowerList")
