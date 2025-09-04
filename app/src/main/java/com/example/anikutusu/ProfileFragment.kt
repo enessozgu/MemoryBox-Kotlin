@@ -1,15 +1,20 @@
 package com.example.anikutusu
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.GridLayoutManager
 import com.bumptech.glide.Glide
+import com.example.anikutusu.adapter.ShowMemoryAdapter
 import com.example.anikutusu.databinding.FragmentProfileBinding
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.storage.storage
+
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
@@ -23,13 +28,41 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private var followersListener: ValueEventListener? = null
     private var followingListener: ValueEventListener? = null
 
+    // Grid liste
+    private lateinit var list: ArrayList<ShowMemoryDataClass>
+    private lateinit var adapter: ShowMemoryAdapter
+
     private fun String.sanitizeKey() = this.replace(".", "_")
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentProfileBinding.inflate(inflater, container, false)
+
+        // --- Grid RecyclerView (3 sütun) ---
+        binding.rv.setHasFixedSize(true)
+        binding.rv.layoutManager = GridLayoutManager(requireContext(), 3)
+
+        // Örnek/placeholder içerik; kendi verinle doldurabilirsin
+        list = ArrayList<ShowMemoryDataClass>().apply {
+            add(ShowMemoryDataClass(R.drawable.firstimg))
+            add(ShowMemoryDataClass(R.drawable.secondimg))
+            add(ShowMemoryDataClass(R.drawable.thirdimg))
+            add(ShowMemoryDataClass(R.drawable.fourthimg))
+            add(ShowMemoryDataClass(R.drawable.fivethimg))
+        }
+        adapter = ShowMemoryAdapter(requireContext(), list)
+        binding.rv.adapter = adapter
+
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        _binding = FragmentProfileBinding.bind(view)
 
-        // --- Profil görseli (Storage) ---
+        // --- Profil görseli (Firebase Storage) ---
         val storageRef = Firebase.storage.reference
             .child("images/f348f647-eba8-4d8a-a6a3-682fc4622783.jpg")
 
@@ -78,8 +111,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         // --- FollowInfo'ya geçiş (global action + initialTab) ---
         fun goFollowInfo(initialTab: String) {
             val bundle = Bundle().apply {
-                putString("username", profileUserName)               // Hangi profil?
-                putString("initialTab", initialTab)                  // "followers" | "following"
+                putString("username", profileUserName)
+                putString("initialTab", initialTab) // "followers" | "following"
                 putString("followersCount", binding.followersnumbers.text.toString())
                 putString("followingCount", binding.followednumbers.text.toString())
             }
