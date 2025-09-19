@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/registerFragment">
+    app:startDestination="@id/showMemoryInProfileFragment">
 
     <!-- 🔗 GLOBAL ACTIONS -->
     <action
@@ -224,4 +224,9 @@
             android:id="@+id/action_timeCapsuleFragment_to_homeMapFragment"
             app:destination="@id/homeMapFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/showMemoryInProfileFragment"
+        android:name="com.example.anikutusu.ShowMemoryInProfileFragment"
+        android:label="fragment_show_memory_in_profile"
+        tools:layout="@layout/fragment_show_memory_in_profile" />
 </navigation>

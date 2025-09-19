@@ -1,4 +1,4 @@
 package com.example.anikutusu
 
-data class ShowMemoryDataClass(var sharedMemory:Int) {
+data class ShowMemoryDataClass(var sharedMemory:String) {
 }

@@ -1,7 +1,9 @@
 package com.example.anikutusu
 
 data class ShowMemoryMainPageDataClass(
+    val id: String,          // RTDB key için gerekli (güvenli üretiyoruz)
+    val imageUrl: String,
     val userName: String,
     val location: String,
-    val imageUrl: String   // URL (Firebase Storage download URL)
+    var isLiked: Boolean = false
 )

@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Get an instance of FirebaseAuth to check login status
-       val auth = FirebaseAuth.getInstance()
+      val auth = FirebaseAuth.getInstance()
 
         // Retrieve NavController from the NavHostFragment
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment

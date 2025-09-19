@@ -446,7 +446,7 @@ class TimeCapsule : Fragment(R.layout.fragment_time_capsule) {
             // Foto yükle
             var photoUrl: String? = null
             if (photoUri != null) {
-                val photoName = "${username}${prettyIndex}photo.jpg"
+                val photoName = "${username}photo${prettyIndex}.jpg"
                 val photoRef = storageRef.child("users/$userFolder/images/$photoName")
                 photoRef.putFile(photoUri).await()
                 photoUrl = photoRef.downloadUrl.await().toString()
@@ -455,7 +455,7 @@ class TimeCapsule : Fragment(R.layout.fragment_time_capsule) {
             // Ses yükle
             var audioUrl: String? = null
             if (audioUri != null) {
-                val audioName = "${username}${prettyIndex}audio.m4a"
+                val audioName = "${username}audio${prettyIndex}.m4a"
                 val audioRef = storageRef.child("users/$userFolder/audio/$audioName")
                 audioRef.putFile(audioUri).await()
                 audioUrl = audioRef.downloadUrl.await().toString()
@@ -475,7 +475,7 @@ class TimeCapsule : Fragment(R.layout.fragment_time_capsule) {
                 }
             """.trimIndent()
 
-                val gpsName = "${username}${nextIndex}gps.json"
+                val gpsName = "${username}gps${nextIndex}.json"
                 val gpsRef  = storageRef.child("users/$userFolder/gps/$gpsName")
                 val bytes = gpsJson.toByteArray(Charsets.UTF_8)
                 gpsRef.putBytes(bytes).await()
